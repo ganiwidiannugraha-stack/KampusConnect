@@ -90,7 +90,8 @@ export async function saveRoom(formData: FormData, roomId?: string) {
         return { success: false, message: `File "${file.name}" terlalu besar. Maksimal 5MB per file.` };
       }
 
-      const buffer = Buffer.from(await file.arrayBuffer());
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
       const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'rooms');
       
