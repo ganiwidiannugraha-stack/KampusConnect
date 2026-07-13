@@ -836,7 +836,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
     </div>
     
       {/* BOTTOM ACTION BAR (MOBILE ONLY) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[60] flex items-stretch h-16 pb-safe">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-40 flex items-stretch h-16 pb-safe">
         <button onClick={() => setFilterSheetOpen(true)} className="flex-1 flex flex-col items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted/30 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-1"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
           <span className="text-[11px] font-bold">Filter</span>
