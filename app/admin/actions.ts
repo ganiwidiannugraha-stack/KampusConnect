@@ -1,3 +1,5 @@
+'use server';
+
 /**
  * @file actions.ts
  * @description Mendefinisikan seluruh Server Actions (RPCs) yang digunakan oleh Dashboard Admin.
