@@ -421,9 +421,10 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
               </div>
             </div>
 
-            {/* Table */}
+            {/* Table Area */}
             <div className="flex-1 overflow-auto">
-              <table className="w-full text-left border-collapse">
+              {/* DESKTOP TABLE */}
+              <table className="w-full text-left border-collapse hidden md:table">
                 <thead>
                   <tr className="bg-muted/20 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground sticky top-0 bg-card z-10">
                     <th className="px-5 py-3 font-bold">Booking ID</th>
@@ -484,6 +485,42 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                   ))}
                 </tbody>
               </table>
+
+              {/* MOBILE CARDS */}
+              <div className="md:hidden flex flex-col divide-y divide-border">
+                {paginatedBookings.length === 0 ? (
+                  <div className="px-5 py-12 text-center text-sm text-muted-foreground">
+                    Tidak ada data yang cocok dengan pencarian/filter.
+                  </div>
+                ) : paginatedBookings.map((booking: any) => (
+                  <div key={booking.id} className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-sm text-foreground">{booking.user?.name || 'Anonim'}</div>
+                        <div className="text-[11px] text-muted-foreground">#{booking.id.toUpperCase().substring(0, 8)}</div>
+                      </div>
+                      <StatusBadge status={booking.status} />
+                    </div>
+                    
+                    <div className="flex flex-col gap-1.5 text-xs mt-1">
+                      <div className="font-semibold text-foreground flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                        {booking.room?.name || 'Unknown'}
+                      </div>
+                      <div className="text-muted-foreground font-medium">
+                        {booking.date} &bull; {booking.startTime || booking.start_time}-{booking.endTime || booking.end_time}
+                      </div>
+                      <div className="text-muted-foreground mt-0.5 border-l-2 border-primary/20 pl-2 line-clamp-2">"{booking.reason}"</div>
+                    </div>
+
+                    <div className="mt-2 pt-3 border-t border-border border-dashed flex justify-end">
+                      <div className="scale-95 origin-right">
+                        <BookingActions bookingId={booking.id} currentStatus={booking.status} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Pagination */}

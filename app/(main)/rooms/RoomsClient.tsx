@@ -122,7 +122,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
       if (filterRef.current) {
         // Toleransi <= 1 untuk mengantisipasi nilai desimal pada scroll
         const { top } = filterRef.current.getBoundingClientRect();
-        setIsSticky(top <= 1);
+        setIsSticky(top <= 1 && window.innerWidth >= 768);
       }
     };
     
@@ -225,7 +225,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
       {/* FILTER SECTION (OVERLAPPING HERO & STICKY) */}
       <div 
         ref={filterRef}
-        className="sticky top-0 z-40 w-full -mt-16 flex justify-center"
+        className="relative md:sticky md:top-0 z-40 w-full -mt-16 flex justify-center"
       >
         {/* THE ANIMATING BACKGROUND BOX */}
         <div 

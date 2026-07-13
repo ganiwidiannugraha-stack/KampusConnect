@@ -105,7 +105,7 @@ export function OrganizationsClient({ organizations }: { organizations: any[] })
 
       <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left min-w-[600px]">
             <thead className="bg-muted/50 text-muted-foreground font-bold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="px-6 py-4">Nama Organisasi</th>

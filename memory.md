@@ -201,7 +201,18 @@ Status bersifat satu arah (one-way), tidak bisa kembali ke status sebelumnya.
 
 ---
 
-## 8. Update Log
+## 8. Standar Operasional Prosedur (SOP) Development & Deployment
+
+Mengingat aplikasi sudah berstatus **Live** (di-*hosting* di Vercel), setiap perubahan kode harus mengikuti aturan ketat berikut untuk mencegah *build failure* di tahap *production*:
+
+1. **Ubah Kode**: AI Assistant melakukan modifikasi kode sesuai instruksi.
+2. **Build Lokal (`npm run build`)**: AI Assistant **WAJIB** menjalankan *build* secara lokal di memori terminal setiap kali selesai mengubah kode untuk memastikan tidak ada *error* kompilasi atau masalah TypeScript.
+3. **Minta Izin**: Setelah *build* sukses, AI Assistant harus meminta konfirmasi/persetujuan dari User (Gani) terlebih dahulu.
+4. **Push ke Repository**: Hanya setelah mendapat izin tertulis dari User, barulah `git push` boleh dilakukan untuk men-*trigger* proses *deploy* di Vercel.
+
+---
+
+## 9. Update Log
 
 | Tanggal | Perubahan |
 |---------|-----------|
@@ -212,3 +223,4 @@ Status bersifat satu arah (one-way), tidak bisa kembali ke status sebelumnya.
 | Jul 2026 | Jadwal kalender, riwayat booking, PDF export |
 | Jul 2026 | Polish UI: dark mode, responsive, pagination |
 | 12 Jul 2026 | Stabilisasi: lock versi, security audit, seed data, dokumentasi |
+| 13 Jul 2026 | Update layout loading state, integrasi Vercel Speed Insights, penambahan SOP Deployment |
