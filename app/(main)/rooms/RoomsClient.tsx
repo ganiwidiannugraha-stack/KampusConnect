@@ -195,7 +195,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
       </div>
 
       {/* ANCHOR UNTUK SCROLL */}
-      <div id="filter-anchor" className="w-full h-0 invisible" />
+      <div id="filter-anchor" className="w-full h-1" />
 
       {/* FILTER SECTION (OVERLAPPING HERO & STICKY) */}
       <div 
@@ -766,7 +766,13 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                 <button 
                   onClick={() => {
                     setCurrentPage(p => Math.max(1, p - 1));
-                    document.getElementById('filter-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setTimeout(() => {
+                      const el = document.getElementById('filter-anchor');
+                      if (el) {
+                        const y = el.getBoundingClientRect().top + window.scrollY - 10;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }, 50);
                   }}
                   disabled={currentPage === 1}
                   className="w-10 h-10 flex items-center justify-center border border-border rounded-xl bg-card hover:bg-muted disabled:opacity-50 transition-colors shadow-sm"
@@ -782,7 +788,13 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                 <button 
                   onClick={() => {
                     setCurrentPage(p => Math.min(totalPages, p + 1));
-                    document.getElementById('filter-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setTimeout(() => {
+                      const el = document.getElementById('filter-anchor');
+                      if (el) {
+                        const y = el.getBoundingClientRect().top + window.scrollY - 10;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }, 50);
                   }}
                   disabled={currentPage === totalPages}
                   className="w-10 h-10 flex items-center justify-center border border-border rounded-xl bg-card hover:bg-muted disabled:opacity-50 transition-colors shadow-sm"

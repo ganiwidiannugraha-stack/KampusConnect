@@ -1,0 +1,46 @@
+=========================================
+ DAFTAR AKUN KAMPUSCONNECT (DEMO DATA)
+=========================================
+Password untuk semua akun di bawah ini:
+KampusConnect2026!
+=========================================
+
+[ AKUN ADMINISTRATOR ]
+Akses: Dashboard Admin, Kelola Ruang, Kelola Organisasi, Manajemen Pengguna, Persetujuan Booking
+
+1. Email: admin.utama@kampus.ac.id
+   Nama : Admin Utama
+
+2. Email: admin.fasilitas@kampus.ac.id
+   Nama : Admin Fasilitas
+
+
+[ AKUN MAHASISWA ]
+Akses: Katalog Ruang, Pengajuan Booking, Riwayat & Pembatalan (H-1)
+
+3. Email: rina.permata@kampus.ac.id
+   Nama : Rina Permata
+   Org  : BEM Universitas
+
+4. Email: budi.santoso@kampus.ac.id
+   Nama : Budi Santoso
+   Org  : HIMA Informatika
+
+5. Email: siti.nurhaliza@kampus.ac.id
+   Nama : Siti Nurhaliza
+   Org  : HIMA Manajemen
+
+6. Email: dewi.lestari@kampus.ac.id
+   Nama : Dewi Lestari
+   Org  : UKM Seni & Budaya
+
+7. Email: arif.rahman@kampus.ac.id
+   Nama : Arif Rahman
+   Org  : UKM Robotika
+
+=========================================
+Catatan Tambahan:
+- Role dan hak akses sudah diatur ketat via RLS Supabase.
+- Pengguna mahasiswa hanya bisa membatalkan reservasi yang mereka buat sendiri maksimal H-1.
+- Operasi di `/admin` hanya bisa diproses menggunakan akun Administrator.
+=========================================

@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { Toaster } from "sonner";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { NavigationProgress } from "@/components/NavigationProgress";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,6 +36,7 @@ export default function RootLayout({
           forcedTheme="light"
           disableTransitionOnChange
         >
+          <NavigationProgress />
           {/* Global Cosmic Background */}
           <div className="fixed inset-0 z-[-1] bg-zinc-50 dark:bg-[#050505] overflow-hidden pointer-events-none">
             {/* Massive Top Glow */}
