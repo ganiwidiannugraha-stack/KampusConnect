@@ -11,7 +11,7 @@ import { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react';
 import BookingModalClient from './BookingModalClient';
 import RoomCalendarModal from './RoomCalendarModal';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { MapPin, Users, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from 'next/image';
 
@@ -592,6 +592,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                                       </div>
                                     </DialogTrigger>
                                     <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none [&>button]:fixed [&>button]:top-4 [&>button]:right-4 [&>button]:!bg-black/50 md:[&>button]:!bg-white/20 [&>button]:hover:!bg-white/40 [&>button]:!text-white [&>button]:!rounded-full [&>button]:!w-10 [&>button]:!h-10 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:z-50" aria-describedby={undefined}>
+                                      <DialogTitle className="sr-only">Galeri Ruangan</DialogTitle>
                                       <Carousel className="w-full" opts={{ loop: true, startIndex: i }}>
                                         <CarouselContent>
                                           {galleryImages.map((gImg: string, j: number) => (
@@ -703,6 +704,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                                     </div>
                                   </DialogTrigger>
                                   <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none [&>button]:fixed [&>button]:top-4 [&>button]:right-4 [&>button]:!bg-black/50 md:[&>button]:!bg-white/20 [&>button]:hover:!bg-white/40 [&>button]:!text-white [&>button]:!rounded-full [&>button]:!w-10 [&>button]:!h-10 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:z-50" aria-describedby={undefined}>
+                                    <DialogTitle className="sr-only">Galeri Ruangan</DialogTitle>
                                     <Carousel className="w-full" opts={{ loop: true, startIndex: i }}>
                                       <CarouselContent>
                                         {galleryImages.map((gImg: string, j: number) => (

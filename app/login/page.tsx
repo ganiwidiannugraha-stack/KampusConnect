@@ -41,8 +41,8 @@ export default async function LoginPage() {
       <section className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-white p-8 sm:p-12 h-full relative overflow-y-auto">
         <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="text-center lg:text-left mb-10">
-            <h2 className="font-bold text-3xl text-slate-900 tracking-tight">Welcome back</h2>
-            <p className="text-slate-500 mt-2">Please enter your details to sign in.</p>
+            <h2 className="font-bold text-3xl text-slate-900 tracking-tight">Selamat Datang</h2>
+            <p className="text-slate-500 mt-2">Silakan masukkan detail akun Anda untuk masuk.</p>
           </div>
           <LoginForm />
         </div>

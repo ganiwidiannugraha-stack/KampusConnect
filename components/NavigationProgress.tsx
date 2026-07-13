@@ -1,17 +1,20 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 /**
  * NProgress-style top loading bar yang muncul saat navigasi antar halaman.
  * Menggunakan usePathname() dari Next.js untuk mendeteksi perubahan route.
  */
-export function NavigationProgress() {
+function NavigationProgressInner() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const prevPathname = useRef(pathname);
+  
+  const currentUrl = `${pathname}${searchParams?.toString() ? '?' + searchParams.toString() : ''}`;
+  const prevUrl = useRef(currentUrl);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const startLoading = useCallback(() => {
@@ -48,23 +51,39 @@ export function NavigationProgress() {
       const href = anchor.getAttribute('href');
       if (!href) return;
       
-      // Hanya proses internal links
-      if (href.startsWith('/') && href !== pathname) {
+      // Deteksi path + query params dari href
+      let targetUrl = href;
+      if (href.startsWith('/')) {
+        try {
+          const urlObj = new URL(href, window.location.origin);
+          targetUrl = `${urlObj.pathname}${urlObj.search}`;
+        } catch(e) {}
+      }
+      
+      // Hanya proses internal links yang beda dengan URL saat ini
+      if (href.startsWith('/') && targetUrl !== currentUrl) {
         startLoading();
       }
     };
 
     document.addEventListener('click', handleClick, true);
     return () => document.removeEventListener('click', handleClick, true);
-  }, [pathname, startLoading]);
+  }, [currentUrl, startLoading]);
 
-  // Ketika pathname berubah = navigasi selesai
+  // Ketika currentUrl berubah = navigasi selesai
   useEffect(() => {
-    if (prevPathname.current !== pathname) {
+    if (prevUrl.current !== currentUrl) {
       finishLoading();
-      prevPathname.current = pathname;
+      prevUrl.current = currentUrl;
     }
-  }, [pathname, finishLoading]);
+  }, [currentUrl, finishLoading]);
+
+  // Tambahan pengaman: jika pathname berubah (atau komponen unmount), pastikan timeout dihapus
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   if (!loading && progress === 0) return null;
 
@@ -75,5 +94,13 @@ export function NavigationProgress() {
         style={{ width: `${progress}%` }}
       />
     </div>
+  );
+}
+
+export function NavigationProgress() {
+  return (
+    <Suspense fallback={null}>
+      <NavigationProgressInner />
+    </Suspense>
   );
 }

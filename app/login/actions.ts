@@ -16,7 +16,7 @@ export async function loginAction(prevState: any, formData: FormData) {
   const password = formData.get('password') as string;
 
   if (!email || !password) {
-    return { success: false, message: 'Email dan password wajib diisi' };
+    return { success: false, message: 'Email dan password wajib diisi', email };
   }
 
   // Authenticate with Supabase
@@ -28,7 +28,8 @@ export async function loginAction(prevState: any, formData: FormData) {
   if (error || !data.user) {
     return { 
       success: false, 
-      message: error?.message || 'Email atau kata sandi salah' 
+      message: error?.message === 'Invalid login credentials' ? 'Email atau kata sandi yang Anda masukkan salah.' : error?.message || 'Email atau kata sandi salah',
+      email
     };
   }
 

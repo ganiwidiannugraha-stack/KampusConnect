@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import BookingModalClient from "./BookingModalClient";
 
@@ -67,6 +67,7 @@ export default function RoomCalendarModal({ room, triggerClassName, iconOnly = f
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-3xl bg-card border-border p-0 overflow-hidden w-full max-w-full !bottom-0 sm:!bottom-auto !top-auto sm:!top-[50%] !translate-y-0 sm:!-translate-y-1/2 !rounded-t-2xl sm:!rounded-2xl !rounded-b-none sm:!rounded-b-2xl mt-auto sm:mt-0 transition-transform">
+        <DialogTitle className="sr-only">Jadwal Ruangan {room.name}</DialogTitle>
         <div className="flex flex-col md:flex-row w-full max-h-[85vh] md:max-h-[600px]">
           {/* KIRI: Kalender */}
           <div className="flex-1 p-5 md:p-6 overflow-y-auto custom-scrollbar">

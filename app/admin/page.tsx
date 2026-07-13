@@ -225,8 +225,9 @@ export default async function AdminDashboardPage() {
               Lihat Semua →
             </Link>
           </div>
-          <div className="overflow-x-auto overflow-y-auto max-h-[320px]">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-y-auto max-h-[400px]">
+            {/* DESKTOP TABLE */}
+            <table className="w-full text-left border-collapse hidden md:table">
               <thead>
                 <tr className="bg-muted/20 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
                   <th className="px-5 py-2.5 font-bold">Pemohon</th>
@@ -271,6 +272,43 @@ export default async function AdminDashboardPage() {
                 ))}
               </tbody>
             </table>
+
+            {/* MOBILE CARDS */}
+            <div className="md:hidden flex flex-col divide-y divide-border">
+              {pendingBookings.map((b: any) => (
+                <div key={b.id} className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-full bg-yellow-500/10 text-yellow-600 flex items-center justify-center font-bold text-[10px] shrink-0 border border-yellow-500/20">
+                        {b.user?.name ? b.user.name.substring(0,2).toUpperCase() : 'AN'}
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-foreground">{b.user?.name || 'Anonim'}</div>
+                        <div className="text-[11px] text-muted-foreground">#{b.id.toUpperCase().substring(0, 8)}</div>
+                      </div>
+                    </div>
+                    <StatusBadge status={b.status} />
+                  </div>
+                  
+                  <div className="flex flex-col gap-1.5 text-xs mt-1">
+                    <div className="font-semibold text-foreground flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                      {b.room?.name || 'Unknown'}
+                    </div>
+                    <div className="text-muted-foreground font-medium">
+                      {b.date} &bull; {b.startTime || b.start_time}-{b.endTime || b.end_time}
+                    </div>
+                    <div className="text-muted-foreground mt-0.5 border-l-2 border-primary/20 pl-2 line-clamp-2">"{b.reason}"</div>
+                  </div>
+
+                  <div className="mt-2 pt-3 border-t border-border border-dashed flex justify-end">
+                    <div className="scale-95 origin-right">
+                      <BookingActions bookingId={b.id} currentStatus={b.status} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

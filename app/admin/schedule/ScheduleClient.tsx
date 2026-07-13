@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useActionState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { 
   format, 
@@ -56,8 +57,34 @@ type Room = {
 export default function ScheduleClient({ initialBookings, allBookings, rooms }: { initialBookings: Booking[], allBookings: AllBooking[], rooms: Room[] }) {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'calendar' | 'table'>(
-    searchParams?.get('tab') === 'table' ? 'table' : 'calendar'
+    searchParams?.get('tab') === 'calendar' ? 'calendar' : 'table'
   );
+  const [direction, setDirection] = useState(0);
+
+  const switchTab = (newTab: 'calendar' | 'table') => {
+    setDirection(newTab === 'table' ? 1 : -1);
+    setActiveTab(newTab);
+  };
+
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe && activeTab === 'calendar') switchTab('table');
+    if (isRightSwipe && activeTab === 'table') switchTab('calendar');
+  };
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -211,18 +238,7 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
         {/* TAB BUTTONS */}
         <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl border border-border w-fit">
           <button
-            onClick={() => setActiveTab('calendar')}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === 'calendar'
-                ? 'bg-card text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-            Kalender
-          </button>
-          <button
-            onClick={() => setActiveTab('table')}
+            onClick={() => switchTab('table')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
               activeTab === 'table'
                 ? 'bg-card text-foreground shadow-sm'
@@ -237,15 +253,38 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
               </span>
             )}
           </button>
+          <button
+            onClick={() => switchTab('calendar')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'calendar'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            Kalender
+          </button>
         </div>
       </div>
 
       {/* TAB CONTENT */}
-      <div className="flex-1 min-h-0 bg-card border border-border shadow-sm rounded-2xl overflow-hidden flex flex-col">
-        
-        {/* ===== CALENDAR TAB ===== */}
-        {activeTab === 'calendar' && (
-          <div className="flex flex-col lg:flex-row h-full">
+      <div 
+        className="flex-1 min-h-0 bg-card border border-border shadow-sm rounded-2xl overflow-hidden flex flex-col relative"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          {activeTab === 'calendar' ? (
+            <motion.div 
+              key="calendar"
+              custom={direction}
+              initial={{ opacity: 0, x: direction > 0 ? -200 : 200 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction > 0 ? 200 : -200 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="flex flex-col lg:flex-row h-full w-full"
+            >
             {/* Calendar View (Left) */}
             <div className="flex-1 flex flex-col border-r border-border overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-border">
@@ -370,12 +409,17 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                 )}
               </div>
             </div>
-          </div>
-        )}
-
-        {/* ===== TABLE TAB ===== */}
-        {activeTab === 'table' && (
-          <div className="flex flex-col h-full">
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="table"
+              custom={direction}
+              initial={{ opacity: 0, x: direction > 0 ? 200 : -200 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction > 0 ? -200 : 200 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="flex flex-col h-full w-full"
+            >
             {/* Toolbar */}
             <div className="p-4 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
               <div className="flex items-center gap-3">
@@ -572,8 +616,9 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                 </div>
               </div>
             )}
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Add Event Modal */}
