@@ -1,3 +1,9 @@
+/**
+ * @file NavbarClient.tsx
+ * @description Komponen Navigasi Klien (Client-side Navigation Bar).
+ * Mengelola state reaktif untuk transparansi (saat berada di halaman utama) dan indikator rute aktif.
+ * Mengimplementasikan gaya "Glassmorphism" yang beradaptasi secara dinamis berdasarkan path URL.
+ */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,11 +12,21 @@ import { usePathname } from 'next/navigation';
 import { LogoutButton } from './LogoutButton';
 import { MobileNavClient } from './MobileNavClient';
 
+/**
+ * Definisi kontrak (interface) properti untuk NavbarClient.
+ */
 type NavbarClientProps = {
   user: any;
   isAdmin: boolean;
   navItems: { label: string; href: string; }[];
 };
+
+/**
+ * Merender bar navigasi atas.
+ * Terintegrasi dengan Next.js App Router (usePathname) untuk menentukan mode visual.
+ * 
+ * @component
+ */
 
 export function NavbarClient({ user, isAdmin, navItems }: NavbarClientProps) {
   const pathname = usePathname();

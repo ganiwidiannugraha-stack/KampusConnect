@@ -1,8 +1,8 @@
 /**
  * @file actions.ts
- * @description Defines all Server Actions (RPCs) utilized by the Admin Dashboard.
- * These actions run exclusively on the Node.js / Edge runtime, ensuring that 
- * sensitive logic and direct database interactions never leak to the client bundle.
+ * @description Mendefinisikan seluruh Server Actions (RPCs) yang digunakan oleh Dashboard Admin.
+ * Fungsi-fungsi ini berjalan eksklusif di runtime Node.js / Edge, memastikan bahwa 
+ * logika sensitif dan interaksi database tidak pernah terekspos ke bundle klien.
  */
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
@@ -15,11 +15,11 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
- * Instantiates an authenticated Supabase client leveraging the Next.js App Router's `cookies()`.
- * This approach guarantees that Row Level Security (RLS) policies are properly evaluated
- * against the current user's session context.
+ * Menginstansiasi Supabase client terautentikasi memanfaatkan `cookies()` dari Next.js App Router.
+ * Pendekatan ini menjamin bahwa kebijakan Row Level Security (RLS) dievaluasi dengan tepat
+ * berdasarkan konteks sesi pengguna yang sedang aktif.
  *
- * @returns {Promise<import('@supabase/supabase-js').SupabaseClient>} Supabase client instance with auth headers.
+ * @returns {Promise<import('@supabase/supabase-js').SupabaseClient>} Instansi Supabase client dengan header autentikasi.
  */
 async function getAuthClient() {
   const cookieStore = await cookies();
@@ -33,26 +33,26 @@ async function getAuthClient() {
 }
 
 /**
- * Authorization Guard: Validates whether the invoking identity possesses sufficient privileges 
- * to execute administrative procedures.
+ * Authorization Guard: Memvalidasi apakah identitas pemanggil (caller) memiliki 
+ * hak istimewa yang cukup untuk mengeksekusi prosedur administratif.
  * 
- * @returns {Promise<{authorized: boolean, user: any}>} Tuple containing authorization status and user payload.
+ * @returns {Promise<{authorized: boolean, user: any}>} Tuple yang berisi status otorisasi dan payload pengguna.
  */
 async function requireAdmin() {
   const user = await getCurrentUser();
   if (!user || !user.role?.canAccessDashboard) {
-    // Fail-closed mechanism: default to denial if authorization context is incomplete.
+    // Mekanisme Fail-closed: secara default menolak akses jika konteks otorisasi tidak lengkap.
     return { authorized: false, user: null } as const;
   }
   return { authorized: true, user } as const;
 }
 
 /**
- * Retrieves a paginated list of facility bookings.
- * Employs Supabase's foreign key joining capabilities to eagerly load relational data (rooms & profiles).
+ * Mengambil daftar reservasi fasilitas beserta relasinya.
+ * Memanfaatkan kapabilitas foreign key join Supabase untuk memuat data relasional (rooms & profiles) secara efisien.
  * 
- * @todo Implement cursor-based pagination for highly scalable dataset rendering.
- * @returns {Promise<Array<any>>} Array of normalized booking entities.
+ * @todo Implementasikan cursor-based pagination untuk rendering dataset skala besar yang lebih efisien.
+ * @returns {Promise<Array<any>>} Array berisi entitas reservasi yang sudah dinormalisasi.
  */
 export async function getBookings() {
   const authClient = await getAuthClient();
@@ -70,14 +70,14 @@ export async function getBookings() {
       created_at
     `)
     .order('created_at', { ascending: false })
-    .limit(500); // Hard boundary to prevent memory bloat on Vercel Edge functions.
+    .limit(500); // Batasan hard limit untuk mencegah memory bloat pada Vercel Edge functions.
 
   if (error) {
-    console.error('[Action: getBookings] Query execution failed:', error.message);
+    console.error('[Action: getBookings] Eksekusi query gagal:', error.message);
     return [];
   }
   
-  // Normalization layer: mapping snake_case from DB to camelCase for the frontend UI.
+  // Layer Normalisasi: memetakan snake_case dari DB menjadi camelCase untuk kebutuhan UI frontend.
   return (bookings || []).map((b: any) => ({
     ...b,
     startTime: b.start_time,
@@ -86,35 +86,35 @@ export async function getBookings() {
 }
 
 /**
- * Mutates the state of a specific booking.
- * Encapsulates the update logic within an RBAC boundary and generates an audit trail entry.
+ * Mengubah status dari sebuah reservasi.
+ * Mengenkapsulasi logika pembaruan di dalam batas RBAC (Role-Based Access Control) dan menghasilkan riwayat audit (audit trail).
  * 
- * @param {string} bookingId - UUID of the target booking.
- * @param {'DISETUJUI' | 'DITOLAK'} status - The intended resolution state.
- * @returns {Promise<{success: boolean, message?: string}>} Operation outcome indicator.
+ * @param {string} bookingId - UUID dari reservasi yang ditargetkan.
+ * @param {'DISETUJUI' | 'DITOLAK'} status - Status penyelesaian yang diinginkan.
+ * @returns {Promise<{success: boolean, message?: string}>} Indikator keberhasilan operasi.
  */
 export async function updateBookingStatus(bookingId: string, status: 'DISETUJUI' | 'DITOLAK') {
-  // 1. Authorization Phase
+  // 1. Fase Otorisasi (Authorization Phase)
   const { authorized, user: admin } = await requireAdmin();
   if (!authorized) {
     return { success: false, message: 'Akses ditolak. Hanya administrator yang dapat memproses reservasi.' };
   }
 
-  // 2. Payload Validation Phase
+  // 2. Fase Validasi Payload (Payload Validation Phase)
   if (!bookingId || !['DISETUJUI', 'DITOLAK'].includes(status)) {
     return { success: false, message: 'Parameter tidak valid (Mismatched schema).' };
   }
 
   const authClient = await getAuthClient();
 
-  // 3. Execution Phase: Optimistic DB Update
+  // 3. Fase Eksekusi: Pembaruan DB secara Optimistis (Optimistic DB Update)
   const { error } = await authClient
     .from('bookings')
     .update({ status })
     .eq('id', bookingId);
     
   if (!error) {
-    // 4. Audit Trail Logging (Fire-and-forget logic)
+    // 4. Pencatatan Audit Trail (Logika Fire-and-forget)
     await authClient.from('approvals').insert({
       booking_id: bookingId,
       admin_id: admin?.id || null,
@@ -122,13 +122,13 @@ export async function updateBookingStatus(bookingId: string, status: 'DISETUJUI'
       notes: "Diproses oleh Admin Dashboard (System Generated)"
     });
 
-    // 5. Cache Invalidation: Triggers Server Components to re-render with fresh data.
+    // 5. Invalidate Cache: Memicu Server Components untuk melakukan re-render dengan data terbaru.
     revalidatePath('/admin');
     revalidatePath('/admin/schedule');
     return { success: true };
   }
   
-  console.error(`[Action: updateBookingStatus] Failed for ID ${bookingId}:`, error.message);
+  console.error(`[Action: updateBookingStatus] Gagal untuk ID ${bookingId}:`, error.message);
   return { success: false, message: error.message || 'Terjadi kesalahan sistem' };
 }
 
@@ -144,17 +144,17 @@ export async function getPendingBookingsCount() {
 }
 
 /**
- * Aggregates analytical statistics for the high-level dashboard view.
- * Utilizes Postgres `count: 'exact'` modifier to prevent pulling heavy payloads into memory,
- * shifting the computation burden entirely to the database engine.
+ * Mengagregasi data analitik statistik untuk tampilan tingkat tinggi (high-level dashboard).
+ * Menggunakan modifier Postgres `count: 'exact'` untuk menghindari penarikan payload berat ke dalam memori aplikasi,
+ * mengalihkan seluruh beban komputasi secara langsung ke mesin database.
  * 
  * @returns {Promise<{totalRooms: number, activeRooms: number, inactiveRooms: number, totalUsers: number}>}
  */
 export async function getDashboardStats() {
   const authClient = await getAuthClient();
   
-  // Parallel execution of independent count queries could be considered here using Promise.all(),
-  // but awaiting them sequentially allows cleaner trace logs for now.
+  // Eksekusi paralel dari antrean query independen dapat dipertimbangkan di sini dengan Promise.all(),
+  // namun menunggu eksekusi secara berurutan (sequential) sementara waktu ini membantu log trace lebih bersih.
   const { count: roomsCount } = await authClient
     .from('rooms')
     .select('*', { count: 'exact', head: true })

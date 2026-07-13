@@ -1,25 +1,39 @@
+/**
+ * @file page.tsx
+ * @description Komponen Server (Server Component) utama untuk halaman Dashboard Administrator.
+ * Halaman ini merender metrik analitik dan panel manajemen pemesanan.
+ * Menggunakan arsitektur pemuatan asinkron (Promise.all) untuk mengambil data secara paralel,
+ * mengurangi waktu Time To First Byte (TTFB).
+ */
 import { getBookings, getDashboardStats } from './actions';
 import UsageStats from './UsageStats';
 import Link from 'next/link';
 import { BookingActions } from './BookingActions';
 import { StatusBadge } from './BookingList';
 
+/**
+ * Merender layout dan agregasi data untuk Dashboard Admin.
+ * 
+ * @component
+ * @returns {Promise<JSX.Element>} Halaman Dashboard Server Component.
+ */
 export default async function AdminDashboardPage() {
+  // Eksekusi pemanggilan database secara paralel untuk optimasi performa rendering
   const [bookings, { totalRooms, activeRooms, inactiveRooms, totalUsers }] = await Promise.all([
     getBookings(),
     getDashboardStats()
   ]);
   
-  // 1. Ringkasan Total
+  // 1. Agregasi Metrik Status Reservasi
   const total = bookings.length;
   const countDisetujui = bookings.filter((b: any) => b.status === 'DISETUJUI').length;
   const countMenunggu = bookings.filter((b: any) => b.status === 'MENUNGGU').length;
   const countDitolak = bookings.filter((b: any) => b.status === 'DITOLAK' || b.status === 'DIBATALKAN').length;
 
-  // 2. 5 Pemohon Terbaru
+  // 2. Pemotongan Data (Data Slicing) untuk Riwayat Terbaru
   const recentBookings = [...bookings].slice(0, 5);
 
-  // 3. Semua Pemohon MENUNGGU (untuk aksi cepat, scrollable)
+  // 3. Filter Memori Cepat untuk Antrean Persetujuan (Approval Queue)
   const pendingBookings = bookings.filter((b: any) => b.status === 'MENUNGGU');
 
   return (

@@ -1,3 +1,10 @@
+/**
+ * @file RoomsClient.tsx
+ * @description Komponen utama (Client Component) untuk antarmuka Katalog Ruang.
+ * Mengimplementasikan pola arsitektur pencarian dan filtering multi-dimensi secara sisi-klien
+ * (Client-side filtering) dengan memoization untuk mempertahankan rasio frame rate (60fps)
+ * saat berinteraksi dengan dataset berukuran besar.
+ */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -14,19 +21,32 @@ const ROOM_IMAGES = [
   "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800", // Meeting room
 ];
 
+/**
+ * Props yang diterima oleh `RoomsClient`.
+ * Data `rooms` dipasok secara asinkron dari Server Component untuk memanfaatkan kapabilitas SSR
+ * pada render inisial, sehingga Core Web Vitals (khususnya LCP dan FCP) tetap optimal.
+ */
 type RoomsClientProps = {
   rooms: any[];
 };
 
+/**
+ * Merender antarmuka interaktif eksplorasi ruangan kampus.
+ * 
+ * @component
+ * @param {RoomsClientProps} props - Mengandung pre-fetched data `rooms`.
+ */
 export default function RoomsClient({ rooms }: { rooms: any[] }) {
+  // === State Manajemen: Filter & Pencarian ===
   const [searchQuery, setSearchQuery] = useState('');
   const [capacityFilter, setCapacityFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState('');
   const [sortBy, setSortBy] = useState('Kapasitas Terbesar');
+  
+  // === State Manajemen: Viewport & Layouting ===
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [isSticky, setIsSticky] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
-  
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -46,10 +66,14 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Menangani hidrasi React untuk menghindari mismatch antara Server & Client render pada mode responsif
   const actualViewMode = (mounted && isMobile) ? 'grid' : viewMode;
   const itemsPerPage = actualViewMode === 'grid' ? ((mounted && isMobile) ? 10 : 9) : 10;
 
-  // reset page ketika ada perubahan filter atau tampilan
+  /**
+   * Effect Hook: Invalidasi cache halaman (reset ke halaman 1)
+   * Terpicu kapan saja *state* parameter filter, pencarian, atau jenis tampilan termutasi.
+   */
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, capacityFilter, dateFilter, sortBy, actualViewMode, selectedLocations, selectedFacilities, selectedTypes]);
