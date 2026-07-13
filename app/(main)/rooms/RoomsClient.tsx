@@ -35,6 +35,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [sortSheetOpen, setSortSheetOpen] = useState(false);
+  const [areaSheetOpen, setAreaSheetOpen] = useState(false);
 
 
   useEffect(() => {
@@ -212,7 +213,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
         >
           {/* THE CONTENT WRAPPER */}
           <div 
-            className={`w-full max-w-7xl transition-all duration-300 ease-out flex flex-col md:flex-row items-end ${
+            className={`w-full container mx-auto transition-all duration-300 ease-out flex flex-col md:flex-row items-end ${
               isSticky 
                 ? 'px-6 lg:px-12 py-3 md:py-4 gap-3' 
                 : 'px-4 md:px-5 py-4 md:py-5 gap-4'
@@ -309,7 +310,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div className="max-w-7xl mx-auto w-full px-6 lg:px-12 pt-8 pb-20 flex flex-col lg:flex-row gap-8 items-start">
+      <div className="container mx-auto w-full px-4 pt-8 pb-20 flex flex-col lg:flex-row gap-8 items-start">
         
         {/* SIDEBAR (Kiri) */}
         <div className="hidden lg:flex w-72 flex-shrink-0 flex-col gap-5">
@@ -537,7 +538,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                   
                   if (actualViewMode === 'grid') {
                     return (
-                      <div key={room.id} className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col h-full group">
+                      <div key={room.id} className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
                         
                         {/* Gambar (Atas) */}
                         <div className="relative w-full bg-muted flex-shrink-0 group/image">
@@ -564,7 +565,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                                         <CarouselContent>
                                           {galleryImages.map((gImg: string, j: number) => (
                                             <CarouselItem key={j} className="flex justify-center items-center">
-                                              <img src={gImg} alt={`${room.name} ${j+1}`} className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+                                              <img src={gImg} alt={`${room.name} ${j+1}`} loading="lazy" decoding="async" className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
                                             </CarouselItem>
                                           ))}
                                         </CarouselContent>
@@ -643,7 +644,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
   
                   // LIST VIEW
                   return (
-                    <div key={room.id} className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row group h-full">
+                    <div key={room.id} className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col md:flex-row group h-full">
                       
                       {/* Gambar (Kiri) */}
                       <div className="md:w-[280px] relative w-full p-3 flex-shrink-0 group/image">
@@ -671,7 +672,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                                       <CarouselContent>
                                         {galleryImages.map((gImg: string, j: number) => (
                                           <CarouselItem key={j} className="flex justify-center items-center">
-                                            <img src={gImg} alt={`${room.name} ${j+1}`} className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+                                            <img src={gImg} alt={`${room.name} ${j+1}`} loading="lazy" decoding="async" className="w-auto h-auto max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
                                           </CarouselItem>
                                         ))}
                                       </CarouselContent>
@@ -822,14 +823,44 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
           <span className="text-[11px] font-bold">Urutkan</span>
         </button>
         <div className="w-[1px] my-3 bg-border"></div>
-        <button onClick={() => {
-            const locSection = document.getElementById('map-location');
-            if (locSection) locSection.scrollIntoView({behavior: 'smooth'});
-        }} className="flex-1 flex flex-col items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted/30 transition-colors">
+        <button onClick={() => setAreaSheetOpen(true)} className="flex-1 flex flex-col items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted/30 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-1"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span className="text-[11px] font-bold">Area</span>
         </button>
       </div>
+
+      {/* MOBILE AREA BOTTOM SHEET */}
+      {areaSheetOpen && (
+        <div className="md:hidden fixed inset-0 z-[100] flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0" onClick={() => setAreaSheetOpen(false)}></div>
+          <div className="relative bg-background w-full rounded-t-2xl shadow-2xl animate-in slide-in-from-bottom-full flex flex-col max-h-[85vh]">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-background z-10 rounded-t-2xl">
+              <h3 className="font-bold text-lg">Pilih Area Kampus</h3>
+              <button onClick={() => setAreaSheetOpen(false)} className="p-2 bg-muted rounded-full text-foreground hover:bg-muted/80">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto p-4 flex flex-col gap-6">
+               <div>
+                  <div className="flex flex-col gap-3">
+                     {["Gedung Pusat Kegiatan Kampus", "Gedung Kuliah Umum", "Gedung Olahraga (GOR)"].map(loc => (
+                        <label key={loc} className="flex items-center gap-3 p-1">
+                           <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleSelection(selectedLocations, setSelectedLocations, loc)} className="w-5 h-5 rounded border-border accent-primary" />
+                           <span className="font-medium flex-1">{loc}</span>
+                        </label>
+                     ))}
+                  </div>
+               </div>
+            </div>
+
+            <div className="p-4 border-t border-border bg-background flex gap-3">
+              <button onClick={() => setSelectedLocations([])} className="px-4 py-3 rounded-xl font-bold border border-border flex-1 bg-card hover:bg-muted text-foreground">Reset</button>
+              <button onClick={() => setAreaSheetOpen(false)} className="px-4 py-3 rounded-xl font-bold bg-primary text-primary-foreground flex-[2] hover:opacity-90 shadow-md">Terapkan</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MOBILE FILTER BOTTOM SHEET */}
       {filterSheetOpen && (

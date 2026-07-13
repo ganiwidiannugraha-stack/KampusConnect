@@ -116,17 +116,25 @@ export async function getPendingBookingsCount() {
 
 export async function getDashboardStats() {
   const authClient = await getAuthClient();
+  
   const { count: roomsCount } = await authClient
     .from('rooms')
     .select('*', { count: 'exact', head: true })
     .eq('is_active', true);
+
+  const { count: inactiveRoomsCount } = await authClient
+    .from('rooms')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', false);
 
   const { count: usersCount } = await authClient
     .from('profiles')
     .select('*', { count: 'exact', head: true });
 
   return {
-    totalRooms: roomsCount || 0,
+    totalRooms: (roomsCount || 0) + (inactiveRoomsCount || 0),
+    activeRooms: roomsCount || 0,
+    inactiveRooms: inactiveRoomsCount || 0,
     totalUsers: usersCount || 0
   };
 }

@@ -8,7 +8,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       {/* GLOBAL FOOTER */}
       <footer className="w-full bg-slate-900 text-slate-300 py-10 mt-auto border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center md:items-start">
               <h2 className="text-xl font-black text-white tracking-tight mb-2 flex items-center gap-2">

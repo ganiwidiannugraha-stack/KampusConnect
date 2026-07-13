@@ -14,18 +14,48 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
   const [pageSize, setPageSize] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [isPageSizeOpen, setIsPageSizeOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'aktif' | 'riwayat'>('aktif');
 
-  const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
+  const filteredBookings = bookings.filter((b) => {
+    if (activeTab === 'aktif') {
+      return b.status === 'MENUNGGU' || b.status === 'DISETUJUI';
+    } else {
+      return b.status === 'DITOLAK' || b.status === 'DIBATALKAN';
+    }
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedBookings = bookings.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paginatedBookings = filteredBookings.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const handleTabChange = (tab: 'aktif' | 'riwayat') => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden relative z-10">
       
       {/* TOOLBAR */}
-      <div className="p-4 border-b border-border flex justify-between items-center bg-muted/20">
-        <h2 className="font-bold text-foreground">Daftar Reservasi</h2>
-        <div className="relative">
+      <div className="p-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-muted/20">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <h2 className="font-bold text-foreground">Daftar Reservasi</h2>
+          <div className="flex bg-background border border-border rounded-lg overflow-hidden">
+            <button 
+              onClick={() => handleTabChange('aktif')}
+              className={`px-4 py-2 text-xs font-semibold transition-colors ${activeTab === 'aktif' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            >
+              Aktif
+            </button>
+            <button 
+              onClick={() => handleTabChange('riwayat')}
+              className={`px-4 py-2 text-xs font-semibold transition-colors ${activeTab === 'riwayat' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            >
+              Riwayat
+            </button>
+          </div>
+        </div>
+        <div className="relative w-full sm:w-auto flex justify-end">
           <button 
             onClick={() => setIsPageSizeOpen(!isPageSizeOpen)}
             className="px-3 py-2 border border-border bg-background rounded-lg text-xs font-semibold hover:bg-muted flex items-center gap-2 whitespace-nowrap text-foreground min-h-[32px]"
@@ -70,8 +100,14 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
             {paginatedBookings.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                  Anda belum pernah mengajukan reservasi ruangan.<br />
-                  <Link href="/rooms" className="text-primary hover:underline mt-2 inline-block">Mulai pesan ruangan sekarang!</Link>
+                  {activeTab === 'aktif' ? (
+                    <>
+                      Anda belum pernah mengajukan reservasi ruangan.<br />
+                      <Link href="/rooms" className="text-primary hover:underline mt-2 inline-block">Mulai pesan ruangan sekarang!</Link>
+                    </>
+                  ) : (
+                    "Belum ada riwayat reservasi yang ditolak atau dibatalkan."
+                  )}
                 </td>
               </tr>
             ) : paginatedBookings.map((booking: any) => (
@@ -118,8 +154,14 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
       <div className="md:hidden flex flex-col divide-y divide-border">
         {paginatedBookings.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
-            Anda belum pernah mengajukan reservasi ruangan.<br />
-            <Link href="/rooms" className="text-primary font-bold hover:underline mt-3 inline-block bg-primary/10 px-4 py-2 rounded-lg">Pesan Ruangan Sekarang</Link>
+            {activeTab === 'aktif' ? (
+              <>
+                Anda belum pernah mengajukan reservasi ruangan.<br />
+                <Link href="/rooms" className="text-primary font-bold hover:underline mt-3 inline-block bg-primary/10 px-4 py-2 rounded-lg">Pesan Ruangan Sekarang</Link>
+              </>
+            ) : (
+              "Belum ada riwayat reservasi yang ditolak atau dibatalkan."
+            )}
           </div>
         ) : paginatedBookings.map((booking: any) => (
           <div key={booking.id} className="p-5 flex flex-col gap-4">
@@ -170,7 +212,7 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
       {totalPages > 1 && (
         <div className="p-4 border-t border-border flex items-center justify-between bg-muted/10">
           <div className="text-xs text-muted-foreground">
-            Menampilkan <span className="font-bold text-foreground">{paginatedBookings.length > 0 ? (safePage - 1) * pageSize + 1 : 0}</span> - <span className="font-bold text-foreground">{Math.min(safePage * pageSize, bookings.length)}</span> dari <span className="font-bold text-foreground">{bookings.length}</span> reservasi
+            Menampilkan <span className="font-bold text-foreground">{paginatedBookings.length > 0 ? (safePage - 1) * pageSize + 1 : 0}</span> - <span className="font-bold text-foreground">{Math.min(safePage * pageSize, filteredBookings.length)}</span> dari <span className="font-bold text-foreground">{filteredBookings.length}</span> reservasi
           </div>
           <div className="flex items-center gap-1">
             <button 

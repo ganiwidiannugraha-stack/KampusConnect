@@ -1,6 +1,11 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { cookies } from 'next/headers';
-import FallingRain from '@/components/FallingRain';
+import { 
+  ArrowRight, PlayCircle, CheckCircle2, 
+  Search, Eye, RefreshCw, ShieldCheck, 
+  Lock, Building, Calendar 
+} from 'lucide-react';
 
 export default async function Home() {
   const cookieStore = await cookies();
@@ -8,162 +13,221 @@ export default async function Home() {
   const isLoggedIn = !!sessionToken;
 
   return (
-    <div className="relative overflow-hidden font-sans flex flex-col">
-      {/* Background Rain */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-40">
-        <FallingRain count={2} />
-      </div>
-
-      {/* === SECTION 1: HERO === */}
-      <section className="relative z-10 h-[calc(100dvh-4rem)] flex flex-col justify-between pt-8 pb-4">
+    <div className="font-sans text-zinc-800 bg-white antialiased overflow-x-hidden">
+      
+      {/* Hero Section */}
+      <header className="relative pt-24 pb-32 lg:pt-36 lg:pb-40 overflow-hidden bg-white">
+        {/* Abstract Decoration */}
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-accent/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
         
-        {/* Hero Text */}
-        <div className="relative z-10 w-full pt-4 md:pt-8 lg:pt-12 text-center flex flex-col items-center justify-center px-4 shrink-0">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground mb-4 drop-shadow-lg" style={{ fontFamily: 'var(--font-sans), serif' }}>
-            KampusConnect
-          </h1>
-          <p className="text-base md:text-lg lg:text-xl text-foreground/90 max-w-2xl font-medium drop-shadow-md">
-            Temukan pengalaman reservasi ruang kampus terbaik. Bebas bentrok, dan terintegrasi penuh dalam satu genggaman.
-          </p>
-        </div>
-
-        {/* Floating Booking Bar */}
-        <div className="relative w-[90%] max-w-4xl mx-auto my-auto z-20 shrink-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[90%] md:w-[80%] h-[150px] md:h-[250px] bg-primary/40 dark:bg-primary/20 rounded-[100%] blur-[80px] pointer-events-none -z-10 -translate-y-1/2" />
-
-          <div className="absolute bottom-full left-0 right-0 h-[100vh] pointer-events-none z-0">
-            <FallingRain count={4} />
-          </div>
-
-          <div className="relative bg-card/40 backdrop-blur-xl border border-border/30 rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 overflow-hidden z-10">
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-primary/80 to-transparent"></div>
-            <div className="absolute inset-x-0 top-0 h-24 bg-primary/5 blur-3xl pointer-events-none"></div>
-
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4 w-full text-foreground text-center md:text-left">
-              <div className="flex flex-col md:border-r border-border/30 pr-0 md:pr-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1">Katalog Fasilitas</span>
-                <span className="text-base md:text-lg font-bold">20+ Ruangan Aktif</span>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/30 text-primary font-bold text-sm mb-6">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                Sistem Reservasi Ruangan Modern
               </div>
-              <div className="flex flex-col md:border-r border-border/30 px-0 md:px-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1">Status Sistem</span>
-                <span className="text-base md:text-lg font-bold">Beroperasi 24/7</span>
-              </div>
-              <div className="hidden md:flex flex-col pl-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1">Jaminan</span>
-                <span className="text-base md:text-lg font-bold">100% Anti-Bentrok</span>
-              </div>
-            </div>
-
-            <div className="w-full md:w-auto mt-4 md:mt-0 flex-shrink-0 md:pl-6">
-              {isLoggedIn ? (
-                <Link
-                  href="/rooms"
-                  className="flex h-12 md:h-14 w-full items-center justify-center rounded-xl bg-foreground text-background px-8 text-sm font-bold shadow-lg hover:bg-foreground/90 transition-all hover:scale-105"
-                >
-                  Lihat Katalog
+              
+              <h1 className="text-5xl lg:text-7xl font-extrabold text-zinc-900 leading-[1.1] tracking-tight mb-6">
+                Sederhanakan Reservasi Kampus. <span className="text-primary">Tingkatkan Produktivitas.</span>
+              </h1>
+              
+              <p className="text-xl text-zinc-600 mb-10 leading-relaxed font-medium">
+                Cara cerdas dan mulus bagi mahasiswa dan dosen untuk mereservasi ruang kuliah, ruang belajar, dan lab. Dirancang khusus untuk universitas modern.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                {isLoggedIn ? (
+                  <Link href="/rooms" className="inline-flex justify-center items-center gap-2 bg-primary text-white font-bold text-lg px-8 py-4 rounded-full hover:bg-primary/90 transition-all hover:shadow-lg hover:-translate-y-0.5">
+                    Mulai Reservasi
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                ) : (
+                  <Link href="/login" className="inline-flex justify-center items-center gap-2 bg-primary text-white font-bold text-lg px-8 py-4 rounded-full hover:bg-primary/90 transition-all hover:shadow-lg hover:-translate-y-0.5">
+                    Mulai Sekarang
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                )}
+                
+                <Link href="#how-it-works" className="inline-flex justify-center items-center gap-2 bg-white text-primary border-2 border-primary font-bold text-lg px-8 py-4 rounded-full hover:bg-primary/5 transition-all">
+                  Pelajari Lebih Lanjut
+                  <PlayCircle className="w-5 h-5" />
                 </Link>
-              ) : (
-                <Link
-                  href="/login"
-                  className="flex h-12 md:h-14 w-full items-center justify-center rounded-xl bg-foreground text-background px-8 text-sm font-bold shadow-lg hover:bg-foreground/90 transition-all hover:scale-105"
-                >
-                  Mulai Reservasi
-                </Link>
-              )}
+              </div>
+              
+              <div className="mt-12 flex items-center gap-6 text-sm font-bold text-zinc-500">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-accent" />
+                  Integrasi SSO
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-accent" />
+                  Responsif Seluler
+                </div>
+              </div>
+            </div>
+
+            {/* Hero Imagery - Bento Style */}
+            <div className="relative h-[600px] w-full hidden lg:block">
+              {/* Main Image */}
+              <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+                <Image 
+                  className="w-full h-full object-cover" 
+                  src="https://images.unsplash.com/photo-1577415124269-fc1140a69e91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                  alt="Modern university study space"
+                  fill
+                  priority
+                />
+              </div>
+
+              {/* Floating UI Card 1 */}
+              <div className="absolute top-10 -left-12 bg-white/85 backdrop-blur-md border border-primary/10 p-4 rounded-2xl shadow-xl w-64 animate-[bounce_10s_ease-in-out_infinite]">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Building className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-foreground">Design Lab B</h4>
+                    <p className="text-xs text-zinc-500 font-medium">Available Now</p>
+                  </div>
+                </div>
+                <button className="w-full bg-accent/50 text-primary font-bold text-xs py-2 rounded-lg">Book Instantly</button>
+              </div>
+
+              {/* Floating UI Card 2 */}
+              <div className="absolute bottom-20 -right-8 bg-white/85 backdrop-blur-md border border-primary/10 p-4 rounded-2xl shadow-xl w-56 animate-[bounce_12s_ease-in-out_infinite_reverse]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-zinc-500">Jadwal Hari Ini</span>
+                  <Calendar className="text-primary w-4 h-4" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex gap-2 items-center text-xs">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                    <span className="text-zinc-700 font-bold">10:00 WIB</span>
+                    <span className="text-zinc-500 truncate">Ruang Belajar 4</span>
+                  </div>
+                  <div className="flex gap-2 items-center text-xs">
+                    <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+                    <span className="text-zinc-700 font-bold">14:30 WIB</span>
+                    <span className="text-zinc-500 truncate">Aula Kuliah A</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Bottom Stats */}
-        <div className="relative z-10 w-full pt-6 px-8 lg:px-16 flex flex-col sm:flex-row justify-between items-end gap-4 text-foreground shrink-0">
-          <div className="max-w-md hidden md:block">
-            <p className="text-xs lg:text-sm text-foreground/80 font-medium leading-relaxed">
-              Kami merangkul antusiasme setiap civitas akademika, memastikan semua orang memiliki kesempatan mengeksekusi acaranya dengan sempurna di kampus kita tercinta.
-            </p>
+      {/* How it Works Section */}
+      <section className="py-24 bg-muted/50 relative" id="how-it-works">
+        <div className="absolute inset-0 opacity-50" style={{ backgroundImage: 'radial-gradient(rgba(83, 110, 75, 0.08) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-sm font-bold text-primary tracking-widest uppercase mb-3">Alur Kerja</h2>
+            <h3 className="text-3xl md:text-5xl font-extrabold text-zinc-900 mb-6">Pesan Ruangan dalam Hitungan Detik</h3>
+            <p className="text-lg text-zinc-600 font-medium">Tidak perlu lagi membuang waktu mencari ruang kosong atau berurusan dengan jadwal ganda. Proses efisien kami memastikan Anda mendapatkan ruangan dengan instan.</p>
           </div>
-          <div className="flex gap-8 lg:gap-16 w-full md:w-auto justify-between md:justify-end">
-            <div className="flex flex-col">
-              <span className="text-2xl lg:text-4xl font-black">90+</span>
-              <span className="text-[10px] lg:text-sm text-foreground/80 font-medium">Mahasiswa Aktif</span>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm hover:-translate-y-2 hover:shadow-xl transition-all duration-300 border border-zinc-100 group">
+              <div className="w-16 h-16 rounded-2xl bg-accent/30 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                <Search className="w-8 h-8" />
+              </div>
+              <h4 className="text-xl font-bold mb-3 text-zinc-900">1. Cari</h4>
+              <p className="text-zinc-600 font-medium leading-relaxed">Filter berdasarkan gedung, tipe ruangan, dan fasilitas. Temukan ruangan yang tepat untuk sesi studi atau perkuliahan Anda.</p>
             </div>
-            <div className="flex flex-col">
-              <span className="text-2xl lg:text-4xl font-black">500+</span>
-              <span className="text-[10px] lg:text-sm text-foreground/80 font-medium">Jam Reservasi</span>
+            {/* Step 2 */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm hover:-translate-y-2 hover:shadow-xl transition-all duration-300 border border-zinc-100 group relative md:translate-y-8">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                <Eye className="w-8 h-8" />
+              </div>
+              <h4 className="text-xl font-bold mb-3 text-zinc-900">2. Cek Jadwal</h4>
+              <p className="text-zinc-600 font-medium leading-relaxed">Lihat ketersediaan real-time melalui jadwal visual yang intuitif. Pastikan ruangan sedang kosong tanpa harus menebak.</p>
             </div>
-            <div className="flex flex-col">
-              <span className="text-2xl lg:text-4xl font-black">15</span>
-              <span className="text-[10px] lg:text-sm text-foreground/80 font-medium">Mitra Fakultas</span>
+            {/* Step 3 */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm hover:-translate-y-2 hover:shadow-xl transition-all duration-300 border border-zinc-100 group md:translate-y-16">
+              <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-md">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h4 className="text-xl font-bold mb-3 text-zinc-900">3. Pesan</h4>
+              <p className="text-zinc-600 font-medium leading-relaxed">Konfirmasi reservasi Anda secara instan hanya dengan satu klik. Dapatkan persetujuan dan notifikasi langsung.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* === SECTION 2: CARA RESERVASI === */}
-      <section className="relative z-10 py-20 px-6 lg:px-12">
-        <div className="max-w-5xl mx-auto text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Cara Reservasi</h2>
-          <p className="text-muted-foreground text-base md:text-lg max-w-xl mx-auto">Tiga langkah mudah untuk memesan ruangan kampus favorit Anda.</p>
-        </div>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Step 1 */}
-          <div className="relative bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 text-2xl font-black">1</div>
-            <h3 className="font-bold text-lg text-foreground mb-2">Login Akun</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">Masuk menggunakan akun UKM atau Himpunan yang terdaftar di sistem kampus.</p>
+      {/* Features Section */}
+      <section className="py-32 bg-white overflow-hidden" id="features">
+        <div className="container mx-auto px-4">
+          <div className="mb-20">
+            <h2 className="text-sm font-bold text-primary tracking-widest uppercase mb-3">Kemampuan Platform</h2>
+            <h3 className="text-3xl md:text-5xl font-extrabold text-zinc-900 max-w-2xl">Dirancang untuk Skala Kampus</h3>
           </div>
-          {/* Step 2 */}
-          <div className="relative bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 text-2xl font-black">2</div>
-            <h3 className="font-bold text-lg text-foreground mb-2">Pilih Ruangan</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">Jelajahi katalog ruangan, cek jadwal ketersediaan, lalu ajukan reservasi dengan mudah.</p>
-          </div>
-          {/* Step 3 */}
-          <div className="relative bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 text-2xl font-black">3</div>
-            <h3 className="font-bold text-lg text-foreground mb-2">Tunggu Persetujuan</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">Admin kampus akan memproses pengajuan Anda. Pantau status melalui halaman riwayat.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* === SECTION 3: KEUNGGULAN SISTEM === */}
-      <section className="relative z-10 py-20 px-6 lg:px-12 border-t border-border/30">
-        <div className="max-w-5xl mx-auto text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Mengapa KampusConnect?</h2>
-          <p className="text-muted-foreground text-base md:text-lg max-w-xl mx-auto">Dirancang khusus untuk kebutuhan organisasi kampus modern.</p>
-        </div>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Feature 1 */}
-          <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:shadow-md transition-shadow">
-            <div className="w-11 h-11 rounded-xl bg-green-500/10 text-green-600 flex items-center justify-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          
+          <div className="grid lg:grid-cols-12 gap-8">
+            {/* Large Feature */}
+            <div className="lg:col-span-8 bg-muted/50 rounded-[2rem] p-8 md:p-12 border border-zinc-100 relative overflow-hidden group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+              <div className="relative z-10 max-w-md">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm mb-6">
+                  <RefreshCw className="w-6 h-6" />
+                </div>
+                <h4 className="text-2xl font-bold mb-4 text-zinc-900">Sinkronisasi Real-Time</h4>
+                <p className="text-zinc-600 font-medium text-lg">Pembaruan jadwal instan yang terhubung antar perangkat. Tidak perlu khawatir dengan jadwal yang tidak mutakhir.</p>
+              </div>
+              {/* Decorative Graphic */}
+              <div className="absolute right-0 bottom-0 w-2/3 h-2/3 translate-x-1/4 translate-y-1/4 bg-gradient-to-tl from-accent/40 to-transparent rounded-tl-[100px] transition-transform duration-700 group-hover:scale-105"></div>
             </div>
-            <h3 className="font-bold text-foreground mb-1">Anti-Bentrok</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">Sistem otomatis mendeteksi konflik jadwal sehingga tidak ada dua kegiatan di waktu yang sama.</p>
-          </div>
-          {/* Feature 2 */}
-          <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:shadow-md transition-shadow">
-            <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            
+            {/* Feature Stack */}
+            <div className="lg:col-span-4 flex flex-col gap-8">
+              {/* Feature 1 */}
+              <div className="flex-1 bg-primary text-white rounded-[2rem] p-8 relative overflow-hidden group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <div className="absolute inset-0 opacity-50 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')]"></div>
+                <div className="relative z-10">
+                  <ShieldCheck className="text-accent w-10 h-10 mb-4" />
+                  <h4 className="text-xl font-bold mb-2">Bebas Bentrok</h4>
+                  <p className="text-white/90 font-medium text-sm">Sistem cerdas kami aktif mencegah bentrokan atau pemesanan ganda.</p>
+                </div>
+              </div>
+              
+              {/* Feature 2 */}
+              <div className="flex-1 border border-zinc-200 rounded-[2rem] p-8 hover:-translate-y-2 hover:border-primary/30 hover:shadow-xl transition-all duration-300 bg-white">
+                <Eye className="text-primary w-10 h-10 mb-4" />
+                <h4 className="text-xl font-bold mb-2 text-zinc-900">Transparansi Penuh</h4>
+                <p className="text-zinc-500 font-medium text-sm">Visibilitas jelas terkait status dan jadwal ruangan bagi seluruh civitas akademika.</p>
+              </div>
             </div>
-            <h3 className="font-bold text-foreground mb-1">Transparan</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">Semua status reservasi bisa dipantau secara real-time oleh pemohon dan administrator.</p>
-          </div>
-          {/* Feature 3 */}
-          <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:shadow-md transition-shadow">
-            <div className="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+            
+            {/* Full Width Feature */}
+            <div className="lg:col-span-12 mt-4 bg-zinc-900 text-white rounded-[2rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-3xl rounded-full"></div>
+              
+              <div className="flex-1 relative z-10">
+                <Lock className="text-accent w-10 h-10 mb-6" />
+                <h4 className="text-3xl font-bold mb-4">Keamanan Tingkat Lanjut</h4>
+                <p className="text-zinc-400 font-medium text-lg max-w-xl">Integrasi mulus dengan Single Sign-On (SSO) universitas, dilengkapi akses kontrol berlapis untuk dosen, staf, dan mahasiswa.</p>
+              </div>
+              
+              <div className="flex-1 relative z-10 w-full">
+                <div className="h-64 w-full bg-zinc-800 rounded-2xl border border-zinc-700 flex items-center justify-center overflow-hidden">
+                  <Image 
+                    className="w-full h-full object-cover opacity-80 mix-blend-luminosity" 
+                    src="https://images.unsplash.com/photo-1555949963-aa79dcee981c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                    alt="Enterprise Security"
+                    width={500}
+                    height={300}
+                  />
+                </div>
+              </div>
             </div>
-            <h3 className="font-bold text-foreground mb-1">Real-time</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">Data jadwal dan ketersediaan selalu sinkron. Tidak ada delay informasi antar pengguna.</p>
-          </div>
-          {/* Feature 4 */}
-          <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:shadow-md transition-shadow">
-            <div className="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <h3 className="font-bold text-foreground mb-1">Aman & Mudah</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">Autentikasi ketat dengan role-based access. Antarmuka sederhana untuk semua kalangan.</p>
+            
           </div>
         </div>
       </section>

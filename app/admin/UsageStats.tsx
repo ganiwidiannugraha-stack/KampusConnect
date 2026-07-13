@@ -3,45 +3,96 @@
 import { useState } from 'react';
 
 export default function UsageStats({ bookings }: { bookings: any[] }) {
-  const [filter, setFilter] = useState<'Mingguan' | 'Bulanan' | 'Tahunan'>('Mingguan');
+  const [filter, setFilter] = useState<'1 Hari' | '1 Minggu' | '1 Bulan' | '2 Bulan' | '1 Tahun'>('1 Minggu');
   const [isOpen, setIsOpen] = useState(false);
 
-  // 1. Hitung total
-  const total = bookings.length;
-
-  // 2. Logic berdasarkan filter
+  // 1. Hitung total berdasarkan filter terpilih
+  const now = new Date();
   let labels: string[] = [];
   let rawData: { label: string; disetujui: number; lainnya: number }[] = [];
+  let filteredBookings = bookings;
 
-  if (filter === 'Mingguan') {
-    labels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    rawData = labels.map((dayLabel, idx) => {
-      const targetDay = idx === 6 ? 0 : idx + 1;
-      const matched = bookings.filter((b) => new Date(b.created_at || b.date).getDay() === targetDay);
-      const disetujui = matched.filter((b) => b.status === 'DISETUJUI').length;
-      return { label: dayLabel, disetujui, lainnya: matched.length - disetujui };
-    });
-  } else if (filter === 'Bulanan') {
-    labels = ['Mg 1', 'Mg 2', 'Mg 3', 'Mg 4'];
+  if (filter === '1 Hari') {
+    labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+    filteredBookings = bookings.filter(b => new Date(b.created_at || b.date).toDateString() === now.toDateString());
     rawData = labels.map((label, idx) => {
-      const matched = bookings.filter((b) => {
-        const date = new Date(b.created_at || b.date).getDate();
-        if (idx === 0) return date >= 1 && date <= 7;
-        if (idx === 1) return date >= 8 && date <= 14;
-        if (idx === 2) return date >= 15 && date <= 21;
-        return date >= 22;
+      const startHr = idx * 4;
+      const matched = filteredBookings.filter((b) => {
+        const hr = new Date(b.created_at || b.date).getHours();
+        return hr >= startHr && hr < startHr + 4;
       });
       const disetujui = matched.filter((b) => b.status === 'DISETUJUI').length;
       return { label, disetujui, lainnya: matched.length - disetujui };
     });
-  } else if (filter === 'Tahunan') {
-    labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+  } else if (filter === '1 Minggu') {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 6);
+    start.setHours(0,0,0,0);
+    filteredBookings = bookings.filter(b => new Date(b.created_at || b.date) >= start);
+    
+    labels = Array.from({length: 7}).map((_, i) => {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      return d.toLocaleDateString('id-ID', { weekday: 'short' });
+    });
     rawData = labels.map((label, idx) => {
-      const matched = bookings.filter((b) => new Date(b.created_at || b.date).getMonth() === idx);
+      const targetDate = new Date(start);
+      targetDate.setDate(targetDate.getDate() + idx);
+      const targetStr = targetDate.toDateString();
+      const matched = filteredBookings.filter((b) => new Date(b.created_at || b.date).toDateString() === targetStr);
+      const disetujui = matched.filter((b) => b.status === 'DISETUJUI').length;
+      return { label, disetujui, lainnya: matched.length - disetujui };
+    });
+  } else if (filter === '1 Bulan' || filter === '2 Bulan') {
+    const numWeeks = filter === '1 Bulan' ? 4 : 8;
+    const start = new Date(now);
+    start.setDate(start.getDate() - (numWeeks * 7));
+    start.setHours(0,0,0,0);
+    filteredBookings = bookings.filter(b => new Date(b.created_at || b.date) >= start);
+
+    labels = Array.from({length: numWeeks}).map((_, i) => `Mg ${i + 1}`);
+    rawData = labels.map((label, idx) => {
+      const weeksAgo = (numWeeks - 1) - idx;
+      const endWeek = new Date(now);
+      endWeek.setDate(endWeek.getDate() - weeksAgo * 7);
+      const startWeek = new Date(endWeek);
+      startWeek.setDate(startWeek.getDate() - 7);
+      
+      const matched = filteredBookings.filter((b) => {
+        const d = new Date(b.created_at || b.date);
+        return d > startWeek && d <= endWeek;
+      });
+      const disetujui = matched.filter((b) => b.status === 'DISETUJUI').length;
+      return { label, disetujui, lainnya: matched.length - disetujui };
+    });
+  } else if (filter === '1 Tahun') {
+    const start = new Date(now);
+    start.setMonth(start.getMonth() - 11);
+    start.setDate(1);
+    start.setHours(0,0,0,0);
+    filteredBookings = bookings.filter(b => new Date(b.created_at || b.date) >= start);
+
+    labels = Array.from({length: 12}).map((_, i) => {
+      const d = new Date(now);
+      d.setMonth(d.getMonth() - (11 - i));
+      return d.toLocaleDateString('id-ID', { month: 'short' });
+    });
+    rawData = labels.map((label, idx) => {
+      const d = new Date(now);
+      d.setMonth(d.getMonth() - (11 - idx));
+      const targetMonth = d.getMonth();
+      const targetYear = d.getFullYear();
+      
+      const matched = filteredBookings.filter((b) => {
+        const bd = new Date(b.created_at || b.date);
+        return bd.getMonth() === targetMonth && bd.getFullYear() === targetYear;
+      });
       const disetujui = matched.filter((b) => b.status === 'DISETUJUI').length;
       return { label, disetujui, lainnya: matched.length - disetujui };
     });
   }
+
+  const total = filteredBookings.length;
 
   const maxColumnTotal = Math.max(1, ...rawData.map(d => d.disetujui + d.lainnya));
   const statsData = rawData.map(d => ({
@@ -77,8 +128,8 @@ export default function UsageStats({ bookings }: { bookings: any[] }) {
           </div>
 
           {isOpen && (
-            <div className="absolute right-0 top-full mt-1 w-32 bg-popover border border-border rounded-md shadow-lg overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-100">
-              {['Mingguan', 'Bulanan', 'Tahunan'].map((opt) => (
+            <div className="absolute right-0 top-full mt-1 w-36 bg-popover border border-border rounded-md shadow-lg overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-100">
+              {['1 Hari', '1 Minggu', '1 Bulan', '2 Bulan', '1 Tahun'].map((opt) => (
                 <div 
                   key={opt}
                   onClick={() => {
@@ -101,7 +152,7 @@ export default function UsageStats({ bookings }: { bookings: any[] }) {
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="m3 17 9-11 9 11" />
           </svg>
-          12% dr bln lalu
+          Periode ini
         </div>
       </div>
       

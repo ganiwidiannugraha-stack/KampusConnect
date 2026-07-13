@@ -23,7 +23,7 @@ export function ScrollToTop() {
     <button
       onClick={scrollToTop}
       aria-label="Kembali ke atas"
-      className={`fixed bottom-6 right-6 z-[90] w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 ease-out hover:scale-110 active:scale-95 ${
+      className={`fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[90] w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 ease-out hover:scale-110 active:scale-95 ${
         isVisible
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'

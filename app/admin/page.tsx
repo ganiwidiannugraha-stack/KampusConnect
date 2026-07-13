@@ -5,7 +5,7 @@ import { BookingActions } from './BookingActions';
 import { StatusBadge } from './BookingList';
 
 export default async function AdminDashboardPage() {
-  const [bookings, { totalRooms, totalUsers }] = await Promise.all([
+  const [bookings, { totalRooms, activeRooms, inactiveRooms, totalUsers }] = await Promise.all([
     getBookings(),
     getDashboardStats()
   ]);
@@ -25,71 +25,124 @@ export default async function AdminDashboardPage() {
   return (
     <main className="p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-background min-h-full">
       
-      {/* TOP SECTION: 4 UNIFORM STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* TOP SECTION: 4 PREMIUM STAT CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         
         {/* Card 1: Total Reservasi */}
-        <div className="bg-card border border-border rounded-xl shadow-sm p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Reservasi</div>
-            <div className="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div className="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 p-5 group flex flex-col justify-between">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-all duration-500"></div>
+          
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Reservasi</div>
+            <div className="w-10 h-10 rounded-xl bg-green-500/10 text-green-600 flex items-center justify-center shadow-inner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
           </div>
-          <div>
-            <div className="text-3xl font-black text-foreground">{total}</div>
-            <div className="text-[11px] text-muted-foreground font-semibold mt-1 flex items-center gap-2">
-              <span className="text-green-500">{countDisetujui} Disetujui</span>
-              <span>&bull;</span>
-              <span className="text-red-500">{countDitolak} Ditolak</span>
+          
+          <div className="relative z-10">
+            <div className="flex items-baseline gap-2">
+              <div className="text-4xl font-black text-foreground tracking-tight">{total}</div>
+              <div className="text-xs font-semibold text-muted-foreground">pengajuan</div>
             </div>
+            
+            {/* Progress Bar of Approval */}
+            {total > 0 && (
+              <div className="mt-4 space-y-1.5">
+                <div className="flex w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="bg-green-500 h-full" style={{ width: `${(countDisetujui / total) * 100}%` }}></div>
+                  <div className="bg-red-500 h-full" style={{ width: `${(countDitolak / total) * 100}%` }}></div>
+                </div>
+                <div className="flex justify-between text-[11px] font-bold">
+                  <span className="text-green-600">{countDisetujui} Disetujui</span>
+                  <span className="text-red-600">{countDitolak} Ditolak/Batal</span>
+                </div>
+              </div>
+            )}
+            {total === 0 && (
+              <div className="mt-3 text-[11px] font-bold text-muted-foreground">Belum ada pengajuan.</div>
+            )}
           </div>
         </div>
 
         {/* Card 2: Menunggu Persetujuan */}
-        <div className="bg-card border border-border rounded-xl shadow-sm p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Menunggu</div>
-            <div className="w-8 h-8 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div className="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 p-5 group flex flex-col justify-between">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all duration-500"></div>
+          
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Aksi Tertunda</div>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shadow-inner relative">
+              {countMenunggu > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>}
+              {countMenunggu > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-zinc-900"></span>}
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
           </div>
-          <div>
-            <div className="text-3xl font-black text-foreground">{countMenunggu}</div>
-            <div className="text-[11px] text-muted-foreground font-semibold mt-1">
-              Membutuhkan verifikasi
+          
+          <div className="relative z-10">
+            <div className="flex items-baseline gap-2">
+              <div className="text-4xl font-black text-foreground tracking-tight">{countMenunggu}</div>
+              <div className="text-xs font-semibold text-muted-foreground">menunggu</div>
+            </div>
+            <div className={`mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold ${countMenunggu > 0 ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' : 'bg-muted text-muted-foreground'}`}>
+              {countMenunggu > 0 ? 'Butuh Verifikasi Segera' : 'Semua telah diverifikasi'}
             </div>
           </div>
         </div>
 
         {/* Card 3: Total Ruangan */}
-        <div className="bg-card border border-border rounded-xl shadow-sm p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ruangan Aktif</div>
-            <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div className="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 p-5 group flex flex-col justify-between">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-500"></div>
+          
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Kapasitas Fasilitas</div>
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shadow-inner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
           </div>
-          <div>
-            <div className="text-3xl font-black text-foreground">{totalRooms}</div>
-            <div className="text-[11px] text-muted-foreground font-semibold mt-1">
-              Fasilitas tersedia
+          
+          <div className="relative z-10">
+            <div className="flex items-baseline gap-2">
+              <div className="text-4xl font-black text-foreground tracking-tight">{totalRooms}</div>
+              <div className="text-xs font-semibold text-muted-foreground">ruangan total</div>
             </div>
+            
+            {/* Progress Bar of Room Status */}
+            {totalRooms > 0 && (
+              <div className="mt-4 space-y-1.5">
+                <div className="flex w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="bg-blue-500 h-full" style={{ width: `${(activeRooms / totalRooms) * 100}%` }}></div>
+                  <div className="bg-gray-400 h-full" style={{ width: `${(inactiveRooms / totalRooms) * 100}%` }}></div>
+                </div>
+                <div className="flex justify-between text-[11px] font-bold">
+                  <span className="text-blue-600">{activeRooms} Aktif</span>
+                  <span className="text-gray-500">{inactiveRooms} Nonaktif</span>
+                </div>
+              </div>
+            )}
+            {totalRooms === 0 && (
+              <div className="mt-3 text-[11px] font-bold text-muted-foreground">Belum ada ruangan.</div>
+            )}
           </div>
         </div>
 
         {/* Card 4: Total Pengguna */}
-        <div className="bg-card border border-border rounded-xl shadow-sm p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Pengguna</div>
-            <div className="w-8 h-8 rounded-full bg-purple-500/10 text-purple-500 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></svg>
+        <div className="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 p-5 group flex flex-col justify-between">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all duration-500"></div>
+          
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Jaringan Pengguna</div>
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shadow-inner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></svg>
             </div>
           </div>
-          <div>
-            <div className="text-3xl font-black text-foreground">{totalUsers}</div>
-            <div className="text-[11px] text-muted-foreground font-semibold mt-1">
-              UKM dan Mahasiswa
+          
+          <div className="relative z-10">
+            <div className="flex items-baseline gap-2">
+              <div className="text-4xl font-black text-foreground tracking-tight">{totalUsers}</div>
+              <div className="text-xs font-semibold text-muted-foreground">akun terdaftar</div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+              Akses Sistem & Dosen/Staf
             </div>
           </div>
         </div>

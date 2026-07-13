@@ -10,7 +10,7 @@ export async function Navbar() {
     { label: "Katalog Ruang", href: "/rooms" },
   ];
 
-  if (user && !isAdmin) {
+  if (user) {
     navItems.push({ label: "Reservasi Saya", href: "/my-bookings" });
   }
 
