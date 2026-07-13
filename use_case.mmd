@@ -1,0 +1,27 @@
+flowchart LR
+    %% Actors
+    User((Mahasiswa / User))
+    Admin((Administrator))
+
+    %% Use Cases
+    subgraph KampusConnect
+        UC1([Melihat Katalog Ruangan])
+        UC2([Mengajukan Reservasi])
+        UC3([Melihat Riwayat Reservasi])
+        UC4([Login / Logout])
+        UC5([Melihat Dashboard Analitik])
+        UC6([Menyetujui / Menolak Reservasi])
+        UC7([Mengelola Data Ruangan])
+        UC8([Mengelola Data Pengguna])
+    end
+
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+
+    Admin --> UC4
+    Admin --> UC5
+    Admin --> UC6
+    Admin --> UC7
+    Admin --> UC8

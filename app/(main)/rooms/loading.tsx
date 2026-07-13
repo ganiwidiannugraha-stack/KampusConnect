@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RoomsLoading() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col flex-1">
       {/* HERO SECTION SKELETON */}
       <div className="relative h-[380px] md:h-[430px] lg:h-[450px] w-full bg-slate-900/40 overflow-hidden">
         <Skeleton className="w-full h-full rounded-none" />

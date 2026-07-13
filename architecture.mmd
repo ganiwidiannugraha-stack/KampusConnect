@@ -1,0 +1,13 @@
+graph TD
+    A[Client Browser / Smartphone] -->|HTTP / React Server Components| B(Next.js 15 Server - Vercel)
+    B -->|Server Actions / API| C{Supabase BaaS}
+    C -->|Auth| D[GoTrue Auth]
+    C -->|Database| E[(PostgreSQL)]
+    
+    classDef client fill:#e1f5fe,stroke:#01579b;
+    classDef server fill:#fff3e0,stroke:#e65100;
+    classDef db fill:#e8f5e9,stroke:#1b5e20;
+    
+    class A client;
+    class B server;
+    class C,D,E db;

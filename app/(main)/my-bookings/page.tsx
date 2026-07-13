@@ -15,7 +15,7 @@ export default async function MyBookingsPage() {
   const bookings = await getMyBookings();
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
+    <div className="flex-1 bg-background text-foreground font-sans">
       <main className="container mx-auto px-4 py-12 relative">
         <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] pointer-events-none" />
 

@@ -13,7 +13,7 @@ export default async function RoomsPage() {
   const rooms = await getRooms();
 
   return (
-    <div className="bg-background text-foreground font-sans min-h-screen">
+    <div className="flex-1 bg-background text-foreground font-sans">
       <main className="animate-in fade-in duration-1000">
         <RoomsClient rooms={rooms} />
       </main>

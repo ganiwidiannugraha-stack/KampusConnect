@@ -1,0 +1,38 @@
+erDiagram
+    PROFILES ||--o{ BOOKINGS : "membuat"
+    ROOMS ||--o{ BOOKINGS : "dipesan dalam"
+    BOOKINGS ||--o| APPROVALS : "memiliki log"
+    
+    PROFILES {
+        uuid id PK
+        string email
+        string name
+        string role "Admin / User"
+        timestamp created_at
+    }
+
+    ROOMS {
+        uuid id PK
+        string name
+        int capacity
+        string area
+        boolean is_active
+    }
+
+    BOOKINGS {
+        uuid id PK
+        uuid user_id FK
+        uuid room_id FK
+        date date
+        time start_time
+        time end_time
+        string status "MENUNGGU/DISETUJUI/DITOLAK"
+    }
+
+    APPROVALS {
+        uuid id PK
+        uuid booking_id FK
+        uuid admin_id FK
+        string status
+        string notes
+    }

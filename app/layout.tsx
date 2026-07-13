@@ -45,7 +45,7 @@ export default function RootLayout({
           </div>
 
           <div className="relative z-0 min-h-screen flex flex-col">
-            <main className="flex-1">
+            <main className="flex-1 flex flex-col">
               {children}
             </main>
             <ScrollToTop />

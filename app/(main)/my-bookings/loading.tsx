@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyBookingsLoading() {
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
+    <div className="flex-1 bg-background text-foreground font-sans">
       <main className="container mx-auto px-4 py-12 relative">
         <div className="mb-8 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div className="space-y-3">
