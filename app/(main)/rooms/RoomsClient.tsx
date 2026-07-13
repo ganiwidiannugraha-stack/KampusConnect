@@ -7,12 +7,13 @@
  */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react';
 import BookingModalClient from './BookingModalClient';
 import RoomCalendarModal from './RoomCalendarModal';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MapPin, Users, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from 'next/image';
 
 const ROOM_IMAGES = [
   "https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&q=80&w=800", // Auditorium
@@ -39,6 +40,7 @@ type RoomsClientProps = {
 export default function RoomsClient({ rooms }: { rooms: any[] }) {
   // === State Manajemen: Filter & Pencarian ===
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearch = useDeferredValue(searchQuery);
   const [capacityFilter, setCapacityFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState('');
   const [sortBy, setSortBy] = useState('Kapasitas Terbesar');
@@ -76,46 +78,47 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
    */
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, capacityFilter, dateFilter, sortBy, actualViewMode, selectedLocations, selectedFacilities, selectedTypes]);
+  }, [deferredSearch, capacityFilter, dateFilter, sortBy, actualViewMode, selectedLocations, selectedFacilities, selectedTypes]);
 
   const toggleSelection = (list: string[], setList: (l: string[]) => void, value: string) => {
     if (list.includes(value)) setList(list.filter(i => i !== value));
     else setList([...list, value]);
   };
 
-  // Menghitung jumlah riil untuk setiap filter lokasi dan tipe
-  const counts = {
-    location: {
-      "Gedung Pusat Kegiatan Kampus": 0,
-      "Gedung Kuliah Umum": 0,
-      "Gedung Olahraga (GOR)": 0,
-    },
-    type: {
-      "Sekretariat / Rapat": 0,
-      "Ruang Kelas": 0,
-      "Aula / Auditorium": 0,
-    }
-  };
+  // Menghitung jumlah riil untuk setiap filter lokasi dan tipe (memoized)
+  const counts = useMemo(() => {
+    const c = {
+      location: {
+        "Gedung Pusat Kegiatan Kampus": 0,
+        "Gedung Kuliah Umum": 0,
+        "Gedung Olahraga (GOR)": 0,
+      },
+      type: {
+        "Sekretariat / Rapat": 0,
+        "Ruang Kelas": 0,
+        "Aula / Auditorium": 0,
+      }
+    };
 
-  rooms.forEach(room => {
-    // Hitung Lokasi
-    const loc = room.location || "Gedung Pusat Kegiatan Kampus";
-    if (loc in counts.location) {
-      counts.location[loc as keyof typeof counts.location]++;
-    } else {
-      counts.location["Gedung Pusat Kegiatan Kampus"]++;
-    }
+    rooms.forEach(room => {
+      const loc = room.location || "Gedung Pusat Kegiatan Kampus";
+      if (loc in c.location) {
+        c.location[loc as keyof typeof c.location]++;
+      } else {
+        c.location["Gedung Pusat Kegiatan Kampus"]++;
+      }
 
-    // Hitung Tipe
-    const roomName = (room.name || "").toLowerCase();
-    const isRapat = roomName.includes("rapat") || roomName.includes("sekretariat") || roomName.includes("meeting");
-    const isKelas = roomName.includes("kelas") || roomName.includes("ruang");
-    const isAula = roomName.includes("aula") || roomName.includes("auditorium") || roomName.includes("balai");
-    
-    if (isRapat) counts.type["Sekretariat / Rapat"]++;
-    if (isKelas) counts.type["Ruang Kelas"]++;
-    if (isAula) counts.type["Aula / Auditorium"]++;
-  });
+      const roomName = (room.name || "").toLowerCase();
+      const isRapat = roomName.includes("rapat") || roomName.includes("sekretariat") || roomName.includes("meeting");
+      const isKelas = roomName.includes("kelas") || roomName.includes("ruang");
+      const isAula = roomName.includes("aula") || roomName.includes("auditorium") || roomName.includes("balai");
+      
+      if (isRapat) c.type["Sekretariat / Rapat"]++;
+      if (isKelas) c.type["Ruang Kelas"]++;
+      if (isAula) c.type["Aula / Auditorium"]++;
+    });
+    return c;
+  }, [rooms]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -132,13 +135,13 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Logika Filter
-  const filteredRooms = rooms.filter(room => {
+  // Logika Filter (memoized)
+  const filteredRooms = useMemo(() => rooms.filter(room => {
     // 1. Pencarian Teks
-    const query = searchQuery.toLowerCase();
+    const query = deferredSearch.toLowerCase();
     const matchName = room.name.toLowerCase().includes(query);
     const matchFacilities = room.facilities?.toLowerCase().includes(query) || false;
-    if (searchQuery && !matchName && !matchFacilities) return false;
+    if (deferredSearch && !matchName && !matchFacilities) return false;
 
     // 2. Filter Kapasitas
     if (capacityFilter !== 'ALL') {
@@ -181,10 +184,10 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
     }
 
     return true;
-  });
+  }), [rooms, deferredSearch, capacityFilter, selectedLocations, selectedFacilities, selectedTypes]);
 
-  // Logika Sorting
-  const sortedRooms = [...filteredRooms].sort((a, b) => {
+  // Logika Sorting (memoized)
+  const sortedRooms = useMemo(() => [...filteredRooms].sort((a, b) => {
     if (sortBy === 'Kapasitas Terbesar') {
       return (b.capacity || 0) - (a.capacity || 0);
     } else if (sortBy === 'Kapasitas Terkecil') {
@@ -193,7 +196,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
       return (a.name || '').localeCompare(b.name || '');
     }
     return 0;
-  });
+  }), [filteredRooms, sortBy]);
 
   const totalPages = Math.ceil(sortedRooms.length / itemsPerPage);
   const paginatedRooms = sortedRooms.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -572,10 +575,14 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                                 <CarouselItem key={i} className="pl-0">
                                   <Dialog>
                                     <DialogTrigger asChild>
-                                      <div className="w-full aspect-[4/3] relative cursor-pointer group/hover">
-                                        <div 
-                                          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/hover:scale-105"
-                                          style={{ backgroundImage: `url('${img}')` }}
+                                      <div className="w-full aspect-[4/3] relative cursor-pointer group/hover overflow-hidden">
+                                        <Image 
+                                          src={img}
+                                          alt={`${room.name} ${i+1}`}
+                                          fill
+                                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                          className="object-cover transition-transform duration-700 group-hover/hover:scale-105"
+                                          loading="lazy"
                                         />
                                         <div className="absolute inset-0 bg-black/0 group-hover/hover:bg-black/20 transition-colors flex items-center justify-center">
                                             <span className="opacity-0 group-hover/hover:opacity-100 bg-black/60 text-white rounded-full p-2 backdrop-blur-sm transition-opacity">
@@ -679,10 +686,14 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                               <CarouselItem key={i} className="pl-0">
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <div className="w-full h-56 md:h-[224px] relative cursor-pointer group/hover">
-                                      <div 
-                                        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/hover:scale-105"
-                                        style={{ backgroundImage: `url('${img}')` }}
+                                    <div className="w-full h-56 md:h-[224px] relative cursor-pointer group/hover overflow-hidden">
+                                      <Image 
+                                        src={img}
+                                        alt={`${room.name} ${i+1}`}
+                                        fill
+                                        sizes="280px"
+                                        className="object-cover transition-transform duration-700 group-hover/hover:scale-105"
+                                        loading="lazy"
                                       />
                                       <div className="absolute inset-0 bg-black/0 group-hover/hover:bg-black/20 transition-colors flex items-center justify-center">
                                           <span className="opacity-0 group-hover/hover:opacity-100 bg-black/60 text-white rounded-full p-2 backdrop-blur-sm transition-opacity">

@@ -27,6 +27,8 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <head>
         <link href="/logo.png" rel="icon" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
       <body
         className={`${inter.variable} antialiased`}
@@ -39,10 +41,7 @@ export default function RootLayout({
         >
           <NavigationProgress />
           {/* Global Cosmic Background */}
-          <div className="fixed inset-0 z-[-1] bg-zinc-50 dark:bg-[#050505] overflow-hidden pointer-events-none">
-            {/* Massive Top Glow */}
-            <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150vw] h-[80vh] bg-primary/40 dark:bg-primary/30 blur-[120px] rounded-[100%] pointer-events-none"></div>
-          </div>
+          <div className="fixed inset-0 z-[-1] pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--primary) / 0.15), transparent 70%)' }}></div>
 
           <div className="relative z-0 min-h-screen flex flex-col">
             <main className="flex-1 flex flex-col">

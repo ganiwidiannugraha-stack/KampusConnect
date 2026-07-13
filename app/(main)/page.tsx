@@ -27,7 +27,6 @@ export default async function Home() {
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/30 text-primary font-bold text-sm mb-6">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
                 Sistem Reservasi Ruangan Modern
@@ -86,7 +85,7 @@ export default async function Home() {
               </div>
 
               {/* Floating UI Card 1 */}
-              <div className="absolute top-10 -left-12 bg-white/85 backdrop-blur-md border border-primary/10 p-4 rounded-2xl shadow-xl w-64 animate-[bounce_10s_ease-in-out_infinite]">
+              <div className="absolute top-10 -left-12 bg-white/85 backdrop-blur-md border border-primary/10 p-4 rounded-2xl shadow-xl w-64 will-change-transform animate-[bounce_10s_ease-in-out_infinite]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     <Building className="w-5 h-5" />
@@ -100,7 +99,7 @@ export default async function Home() {
               </div>
 
               {/* Floating UI Card 2 */}
-              <div className="absolute bottom-20 -right-8 bg-white/85 backdrop-blur-md border border-primary/10 p-4 rounded-2xl shadow-xl w-56 animate-[bounce_12s_ease-in-out_infinite_reverse]">
+              <div className="absolute bottom-20 -right-8 bg-white/85 backdrop-blur-md border border-primary/10 p-4 rounded-2xl shadow-xl w-56 will-change-transform animate-[bounce_12s_ease-in-out_infinite_reverse]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-zinc-500">Jadwal Hari Ini</span>
                   <Calendar className="text-primary w-4 h-4" />
