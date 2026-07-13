@@ -6,6 +6,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { NavigationProgress } from "@/components/NavigationProgress";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -50,6 +51,7 @@ export default function RootLayout({
             <ScrollToTop />
           </div>
           <Toaster position="top-center" richColors />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
