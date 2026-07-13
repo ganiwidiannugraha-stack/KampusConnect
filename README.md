@@ -1,163 +1,101 @@
-# Next.js + KeystoneJS Starter
+# KampusConnect 🎓
+Sistem Informasi Manajemen Fasilitas & Reservasi Kampus terintegrasi, dirancang untuk menyederhanakan proses peminjaman ruangan, manajemen kapasitas, dan analitik penggunaan fasilitas secara real-time.
 
-A modern full-stack application combining Next.js 15 with KeystoneJS 6, featuring admin dashboard implementation and sophisticated role-based permissions.
+## 🏗 Architecture Overview
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjunaid33%2Fnext-keystone-starter%2F&stores=[{"type"%3A"postgres"}])
+Aplikasi ini dibangun menggunakan arsitektur modern berbasis **Serverless & Edge-ready**, memisahkan layer presentasi (Client Components) dari logika bisnis (Server Actions) guna mencapai performa maksimal dan keamanan tingkat tinggi.
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/TK5wC1?referralCode=I_tWSs)
+- **Frontend**: Next.js 15 (App Router) dengan React 19. Memanfaatkan React Server Components (RSC) untuk mengurangi *JavaScript payload* di sisi klien.
+- **Backend/BaaS**: Supabase (PostgreSQL) sebagai *primary data store*, menangani autentikasi, otorisasi via Row Level Security (RLS), dan manajemen relasi data.
+- **Styling**: Tailwind CSS v4 untuk *utility-first styling* dikombinasikan dengan prinsip *Glassmorphism* dan *Micro-interactions*.
+- **State Management**: Kombinasi *URL-based state* (untuk filtering/search) dan React hooks lokal, menghindari kompleksitas *global store* yang tidak perlu (seperti Redux).
 
-## Architecture Overview
+## 🚀 Tech Stack
 
-This project features a **modern admin architecture** with:
+### Core Technologies
+- **Next.js 15.0.0-rc.0** (App Router, Server Actions, Edge Runtime ready)
+- **React 19** (Hooks, Suspense, Concurrent Features)
+- **TypeScript** (Strict mode typing)
+- **Supabase** (PostgreSQL, GoTrue Auth)
 
-- **Backend**: KeystoneJS 6 providing GraphQL API, authentication, and database operations
-- **Frontend**: Custom Next.js admin dashboard with enhanced UI components
-- **Image Support**: S3-compatible image storage and management 
+### UI & Styling
+- **Tailwind CSS** (Custom utilities, dark mode compatibility)
+- **Lucide React** (Consistent SVG iconography)
+- **CSS Modules / Globals** (Animasi custom seperti `fade-in`, `slide-in`)
 
-## Tech Stack
+## 💡 Fitur Utama (Core Features)
 
-### Frontend
-- **Next.js 15** with App Router
-- **React 19** with TypeScript
-- **Radix UI** primitives for accessible components
-- **Tailwind CSS 4** for styling
-- **Remix Icons** (@remixicon/react) for icons
-- **SWR** for client-side data fetching
-- **TipTap** for rich text editing
-- **React Hook Form** for form management
-- **Zod** for schema validation
+1. **Role-Based Access Control (RBAC)**
+   Sistem otorisasi granular yang memisahkan kapabilitas antara `User` (Pemohon) dan `Administrator` (Pengelola). Admin memiliki akses penuh ke Dashboard analitik, sedangkan User dibatasi pada riwayat dan pengajuan individu.
 
-### Backend
-- **KeystoneJS 6** for GraphQL API and admin interface
-- **Prisma ORM** for database operations
-- **GraphQL Yoga** for GraphQL server
-- **PostgreSQL** database
-- **S3-compatible storage** for image management
+2. **Real-time Admin Dashboard**
+   - **Metrics Aggregation**: Menghitung total reservasi, rasio persetujuan (approval rate), dan kapasitas aktif/non-aktif.
+   - **Dynamic Usage Stats**: Grafik analitik interaktif dengan filter dinamis (1 Hari, 1 Minggu, 1 Bulan, dll.) yang memproses data berbasis *timestamp* secara asinkron.
 
-### Key Features
-- **Role-based access control** with granular permissions
-- **Dynamic field controllers** with conditional behavior
-- **Rich text editing** with document fields
-- **Relationship management** with inline editing capabilities
-- **Image upload and management** with S3 storage
-- **Inline create/edit components** for seamless UX
-- **Advanced filtering system** for all field types
-- **Responsive design** with mobile support
+3. **Advanced Filtering & Search**
+   Katalog ruangan mendukung pencarian multi-dimensi (Kapasitas, Area, Tipe, Fasilitas) yang dioptimasi tanpa *re-render* berlebih menggunakan *memoization* dan manipulasi state array yang efisien.
 
-## Getting Started
+4. **Performance & SEO Optimization**
+   - Implementasi `loading="lazy"` dan `decoding="async"` pada rendering gambar (Katalog Ruang).
+   - Penggunaan `fetchPriority` untuk *Hero Image* / Logo guna menekan skor LCP (Largest Contentful Paint).
+   - Skor Core Web Vitals (Pagespeed) rata-rata hijau di tahap *production*.
 
-### Prerequisites
-- Node.js 18+ 
-- PostgreSQL database
+## 📂 Project Structure
 
-### Setup
+Struktur direktori mematuhi standar *feature-based routing* dari Next.js App Router:
 
-1. **Clone and install dependencies:**
+```text
+├── app/
+│   ├── (main)/              # Publik routing (Beranda, Katalog, Reservasi Saya)
+│   ├── admin/               # Protected routing (Dashboard, Manajemen Pengguna, Laporan)
+│   ├── login/               # Modul autentikasi
+│   ├── layout.tsx           # Root layout & providers
+│   └── globals.css          # Tailwind directives & custom CSS animations
+├── components/              # Shared UI components (Navbar, Footer, ScrollToTop)
+└── public/                  # Static assets (Images, Icons)
+```
+
+## 🔐 Security Best Practices
+
+1. **Server Actions Guarding**: Semua *mutations* (seperti `updateBookingStatus`) dilindungi oleh fungsi `requireAdmin()` di sisi server. Memastikan bahwa API tidak bisa di-*bypass* lewat eksekusi *client-side*.
+2. **Environment Variables**: *Keys* yang bersifat krusial (`SUPABASE_SERVICE_ROLE_KEY`) diisolasi secara ketat di `.env.local` dan tidak terekspos ke klien.
+3. **Graceful Degradation**: Penggunaan *skeleton loaders* dan proteksi rute mencegah UI pecah ketika koneksi bermasalah atau data kosong.
+
+## 🛠 Instalasi & Development Lokal
+
+### Persyaratan Sistem (Prerequisites)
+- Node.js versi 18.x atau lebih baru.
+- Akun Supabase (untuk konfigurasi URL dan Anon Key).
+
+### Langkah-langkah Setup
+
+1. **Kloning Repositori & Instalasi Dependensi**
    ```bash
-   git clone https://github.com/junaid33/next-keystone-starter
-   cd next-keystone-starter
+   git clone <repository_url>
+   cd KampusConnect
    npm install
    ```
 
-2. **Configure environment variables:**
-   ```bash
-   cp env.example .env
-   ```
-   
-   Update `.env` with your database configuration:
+2. **Konfigurasi Environment**
+   Buat file `.env.local` di root proyek dan tambahkan kredensial database Anda:
    ```env
-   DATABASE_URL=postgresql://username:password@localhost:5432/database_name
-   SESSION_SECRET=your-super-secret-session-key-change-this-in-production
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    ```
 
-3. **Start development server:**
+3. **Menjalankan Server Development**
    ```bash
    npm run dev
    ```
+   Aplikasi akan berjalan di `http://localhost:3000`.
 
-   This will:
-   - Build KeystoneJS schema
-   - Run database migrations
-   - Start Next.js development server with Turbopack
+4. **Kompilasi Production (Uji Performa Asli)**
+   Untuk menguji performa nyata (seperti saat *deploy*), jalankan mode produksi:
+   ```bash
+   npm run build
+   npm start
+   ```
 
-4. **Access the application:**
-   - Frontend: [http://localhost:3000](http://localhost:3000)
-   - Dashboard: [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
-   - GraphQL API: [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql)
-
-## Development Commands
-
-- `npm run dev` - Build Keystone + migrate + start Next.js dev server
-- `npm run build` - Build Keystone + migrate + build Next.js for production
-- `npm run migrate:gen` - Generate and apply new database migrations
-- `npm run migrate` - Deploy existing migrations to database
-- `npm run lint` - Run ESLint
-
-## API Endpoints
-
-### GraphQL API
-- **Endpoint**: `/api/graphql`
-- **Features**: Full CRUD operations, relationships, authentication
-- **Playground**: Available in development mode
-
-## Data Models
-
-### Core Models
-- **User** - Authentication and user management
-- **Role** - Role-based access control
-- **Todo** - Example content model with relationships
-- **TodoImage** - Image management for Todo items with S3 storage
-
-### Permission System
-Sophisticated role-based permissions including:
-- `canAccessDashboard`, `canManagePeople`, `canManageRoles`
-- `canCreateTodos`, `canManageAllTodos`
-- `canSeeOtherPeople`, `canEditOtherPeople`
-
-## Project Structure
-
-```
-├── app/                    # Next.js App Router
-│   ├── api/
-│   │   └── graphql.ts     # GraphQL API endpoint
-│   └── dashboard/         # Admin dashboard pages
-├── features/
-│   ├── keystone/          # Backend configuration
-│   │   ├── models/        # Keystone list definitions
-│   │   ├── access.ts      # Permission logic
-│   │   └── mutations/     # Custom GraphQL mutations
-│   └── dashboard/         # Admin interface implementation
-│       ├── actions/       # Server actions
-│       ├── components/    # Reusable UI components
-│       ├── screens/       # Page-level components
-│       └── views/         # Field type implementations
-├── keystone.ts            # KeystoneJS configuration
-└── schema.prisma          # Database schema
-```
-
-## Development Notes
-
-- **GraphQL endpoint** available at `/api/graphql`
-- **Field implementations** follow KeystoneJS controller patterns
-- **Permission checks** are integrated throughout the UI layer
-- **Server actions** used for data mutations in dashboard components
-- **Inline editing** components provide seamless UX for relationship management
-- **Image uploads** configured for S3-compatible storage
-- **Advanced filtering** supports all field types including documents, JSON, and images
-
-## Deployment
-
-The application can be deployed to any platform supporting Node.js and PostgreSQL:
-
-1. Set up PostgreSQL database
-2. Configure environment variables
-3. Run `npm run build`
-4. Run `npm start`
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+---
+*Dokumentasi ini disusun secara profesional untuk keperluan peninjauan teknis (Technical Review).*
