@@ -1,4 +1,4 @@
--- 1. nama role "Perwakilan UKM" menjadi "Mahasiswa"
+-- 1. Mengubah nama role "Perwakilan UKM" menjadi "Mahasiswa"
 UPDATE roles SET name = 'Mahasiswa' WHERE name = 'Perwakilan UKM';
 
 -- 2. Membuat fungsi aman untuk mengecek apakah user yang login adalah Administrator
