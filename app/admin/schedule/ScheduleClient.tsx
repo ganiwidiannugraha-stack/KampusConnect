@@ -88,7 +88,7 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{ bookingId: string; status: 'DISETUJUI' | 'DITOLAK' } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ bookingId: string; status: 'Disetujui' | 'Ditolak' } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Table states
@@ -119,7 +119,7 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
     setIsProcessing(true);
     const res = await updateBookingStatus(confirmAction.bookingId, confirmAction.status);
     if (res.success) {
-      toast.success(confirmAction.status === 'DISETUJUI' ? 'Reservasi berhasil disetujui!' : 'Reservasi berhasil ditolak.');
+      toast.success(confirmAction.status === 'Disetujui' ? 'Reservasi berhasil disetujui!' : 'Reservasi berhasil ditolak.');
       setTimeout(() => window.location.reload(), 1000);
     } else {
       toast.error(res.message || 'Gagal memproses reservasi.');
@@ -170,9 +170,9 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
               <div 
                 key={event.id} 
                 className={`text-[10px] md:text-xs truncate px-1.5 py-0.5 rounded-sm font-medium ${
-                  event.status === 'DISETUJUI' 
+                  event.status === 'Disetujui' 
                     ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' 
-                    : event.status === 'MENUNGGU'
+                    : event.status === 'Menunggu'
                     ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
                     : 'bg-red-500/20 text-red-500 border border-red-500/30'
                 }`}
@@ -247,9 +247,9 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
             Daftar Reservasi
-            {allBookings.filter(b => b.status === 'MENUNGGU').length > 0 && (
+            {allBookings.filter(b => b.status === 'Menunggu').length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-[10px] font-black bg-yellow-500/20 text-yellow-700 rounded-full">
-                {allBookings.filter(b => b.status === 'MENUNGGU').length}
+                {allBookings.filter(b => b.status === 'Menunggu').length}
               </span>
             )}
           </button>
@@ -351,19 +351,19 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                     <div 
                       key={event.id} 
                       className={`p-4 rounded-xl border ${
-                        event.status === 'DISETUJUI' 
+                        event.status === 'Disetujui' 
                           ? 'bg-blue-500/10 border-blue-500/20' 
-                          : event.status === 'MENUNGGU'
+                          : event.status === 'Menunggu'
                           ? 'bg-amber-500/10 border-amber-500/20'
                           : 'bg-red-500/10 border-red-500/20'
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <span className={`w-2 h-2 rounded-full ${
-                          event.status === 'DISETUJUI' ? 'bg-blue-500' : event.status === 'MENUNGGU' ? 'bg-amber-500' : 'bg-red-500'
+                          event.status === 'Disetujui' ? 'bg-blue-500' : event.status === 'Menunggu' ? 'bg-amber-500' : 'bg-red-500'
                         }`} />
                         <span className={`text-xs font-bold uppercase tracking-wider ${
-                          event.status === 'DISETUJUI' ? 'text-blue-500' : event.status === 'MENUNGGU' ? 'text-amber-500' : 'text-red-500'
+                          event.status === 'Disetujui' ? 'text-blue-500' : event.status === 'Menunggu' ? 'text-amber-500' : 'text-red-500'
                         }`}>
                           {event.status}
                         </span>
@@ -390,10 +390,10 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                         </div>
                       </div>
 
-                      {event.status === 'MENUNGGU' && (
+                      {event.status === 'Menunggu' && (
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-amber-500/20">
                           <button
-                            onClick={() => setConfirmAction({ bookingId: event.id, status: 'DISETUJUI' })}
+                            onClick={() => setConfirmAction({ bookingId: event.id, status: 'Disetujui' })}
                             disabled={isProcessing}
                             className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-green-500/15 text-green-700 border border-green-500/25 hover:bg-green-500/25 transition-colors disabled:opacity-50"
                           >
@@ -401,7 +401,7 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                             Setujui
                           </button>
                           <button
-                            onClick={() => setConfirmAction({ bookingId: event.id, status: 'DITOLAK' })}
+                            onClick={() => setConfirmAction({ bookingId: event.id, status: 'Ditolak' })}
                             disabled={isProcessing}
                             className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-red-500/15 text-red-700 border border-red-500/25 hover:bg-red-500/25 transition-colors disabled:opacity-50"
                           >
@@ -707,11 +707,11 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
       {/* Confirm Modal for Approve/Reject */}
       <ConfirmModal
         isOpen={!!confirmAction}
-        title={confirmAction?.status === 'DISETUJUI' ? 'Setujui Reservasi' : 'Tolak Reservasi'}
-        message={confirmAction?.status === 'DISETUJUI'
+        title={confirmAction?.status === 'Disetujui' ? 'Setujui Reservasi' : 'Tolak Reservasi'}
+        message={confirmAction?.status === 'Disetujui'
           ? 'Apakah Anda yakin ingin menyetujui reservasi ini?'
           : 'Apakah Anda yakin ingin menolak reservasi ini? Tindakan ini tidak dapat diurungkan.'}
-        confirmText={confirmAction?.status === 'DISETUJUI' ? 'Ya, Setujui' : 'Ya, Tolak'}
+        confirmText={confirmAction?.status === 'Disetujui' ? 'Ya, Setujui' : 'Ya, Tolak'}
         onConfirm={handleApproval}
         onCancel={() => setConfirmAction(null)}
       />
