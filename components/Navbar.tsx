@@ -3,7 +3,7 @@ import { NavbarClient } from './NavbarClient';
 
 export async function Navbar() {
   const user = await getCurrentUser();
-  const isAdmin = user?.role?.canAccessDashboard;
+  const isAdmin = user?.role?.canAccessDashboard ?? false;
 
   const navItems = [
     { label: "Beranda", href: "/" },
