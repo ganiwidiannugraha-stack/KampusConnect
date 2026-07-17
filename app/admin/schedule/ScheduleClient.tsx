@@ -209,7 +209,7 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
   const filteredBookings = useMemo(() => {
     return allBookings.filter((booking: any) => {
       // 1. Filter berdasarkan Dropdown Status (Misal: cuma nampilin yang 'Menunggu')
-      if (statusFilter !== 'Semua Status' && booking.status !== statusFilter.toUpperCase()) return false;
+      if (statusFilter !== 'Semua Status' && booking.status !== statusFilter) return false;
       
       // 2. Filter berdasarkan ketikan di kolom pencarian (Bisa cari nama, alasan, atau ruangan)
       if (search.trim() !== '') {

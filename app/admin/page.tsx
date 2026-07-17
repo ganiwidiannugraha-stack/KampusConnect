@@ -26,15 +26,15 @@ export default async function AdminDashboardPage() {
   
   // 1. Agregasi Metrik Status Reservasi
   const total = bookings.length;
-  const countDisetujui = bookings.filter((b: any) => b.status === 'DISETUJUI').length;
-  const countMenunggu = bookings.filter((b: any) => b.status === 'MENUNGGU').length;
-  const countDitolak = bookings.filter((b: any) => b.status === 'DITOLAK' || b.status === 'DIBATALKAN').length;
+  const countDisetujui = bookings.filter((b: any) => b.status === 'Disetujui').length;
+  const countMenunggu = bookings.filter((b: any) => b.status === 'Menunggu').length;
+  const countDitolak = bookings.filter((b: any) => b.status === 'Ditolak' || b.status === 'Dibatalkan').length;
 
   // 2. Pemotongan Data (Data Slicing) untuk Riwayat Terbaru
   const recentBookings = [...bookings].slice(0, 5);
 
   // 3. Filter Memori Cepat untuk Antrean Persetujuan (Approval Queue)
-  const pendingBookings = bookings.filter((b: any) => b.status === 'MENUNGGU');
+  const pendingBookings = bookings.filter((b: any) => b.status === 'Menunggu');
 
   return (
     <main className="p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-background min-h-full">
@@ -194,12 +194,12 @@ export default async function AdminDashboardPage() {
                   </div>
                 </div>
                 <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold ${
-                  b.status === 'DISETUJUI' ? 'bg-green-500/10 text-green-600' :
-                  b.status === 'DITOLAK' ? 'bg-red-500/10 text-red-600' :
-                  b.status === 'DIBATALKAN' ? 'bg-gray-500/10 text-gray-500' :
+                  b.status === 'Disetujui' ? 'bg-green-500/10 text-green-600' :
+                  b.status === 'Ditolak' ? 'bg-red-500/10 text-red-600' :
+                  b.status === 'Dibatalkan' ? 'bg-gray-500/10 text-gray-500' :
                   'bg-yellow-500/10 text-yellow-600'
                 }`}>
-                  {b.status === 'DISETUJUI' ? 'Setuju' : b.status === 'DITOLAK' ? 'Tolak' : b.status === 'DIBATALKAN' ? 'Batal' : 'Tunggu'}
+                  {b.status === 'Disetujui' ? 'Setuju' : b.status === 'Ditolak' ? 'Tolak' : b.status === 'Dibatalkan' ? 'Batal' : 'Tunggu'}
                 </span>
               </div>
             ))}

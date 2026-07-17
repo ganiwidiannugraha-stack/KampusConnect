@@ -318,12 +318,15 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
               </button>
 
               {/* Reset Button (only show if any filter is active) */}
-              {(searchQuery || capacityFilter !== 'ALL' || dateFilter) && (
+              {(searchQuery || capacityFilter !== 'ALL' || dateFilter || selectedLocations.length > 0 || selectedFacilities.length > 0 || selectedTypes.length > 0) && (
                 <button 
                   onClick={() => {
                     setSearchQuery('');
                     setCapacityFilter('ALL');
                     setDateFilter('');
+                    setSelectedLocations([]);
+                    setSelectedFacilities([]);
+                    setSelectedTypes([]);
                   }}
                   className={`px-4 rounded-xl border border-border bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-300 ease-in-out text-sm font-bold flex items-center justify-center ${isSticky ? 'py-2.5' : 'py-3'}`}
                   title="Reset Filter"
