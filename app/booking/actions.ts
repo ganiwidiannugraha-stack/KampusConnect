@@ -59,18 +59,18 @@ export async function createBooking(prevState: any, formData: FormData) {
   const lampiranFile = formData.get('lampiran') as File;
 
   // 2. Cek kalau ada yang kosong, tolak dan kasih pesan error
-  if (!roomIdStr || !date || !startTime || !endTime || !reason || !jumlahPesertaStr || !lampiranFile) {
-    return { success: false, message: 'Semua isian form dan file lampiran wajib diisi!' };
+  if (!roomIdStr || !date || !startTime || !endTime || !reason) {
+    return { success: false, message: 'Semua isian form utama wajib diisi!' };
   }
   
   // Cek kalau filenya rusak atau ukurannya 0 byte
-  if (lampiranFile.size === 0) {
+  if (lampiranFile && lampiranFile.size === 0) {
      return { success: false, message: 'File lampiran sepertinya rusak atau kosong.' };
   }
 
   // Ubah tipe ID Ruangan dan Jumlah Peserta jadi Angka
   const roomId = parseInt(roomIdStr, 10);
-  const jumlahPeserta = parseInt(jumlahPesertaStr, 10);
+  const jumlahPeserta = jumlahPesertaStr ? parseInt(jumlahPesertaStr, 10) : 1;
 
   // Pencegahan spam: Tujuan kegiatan dibatesin gak boleh lebih dari 500 huruf
   if (reason.length > 500) {
@@ -132,32 +132,37 @@ export async function createBooking(prevState: any, formData: FormData) {
     return { success: false, message: 'Jam mulai acaranya nggak masuk akal (masa lebih lama dari selesainya?).' };
   }
 
-  // 7. PROSES UPLOAD FILE KE STORAGE DATABASE
-  // Ambil tipe file (pdf/jpg) lalu kasih nama unik gabungan (ID User + Waktu Sekarang) biar nggak nimpa file orang lain
-  const fileExt = lampiranFile.name.split('.').pop();
-  const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+  // 7. PROSES UPLOAD FILE KE STORAGE DATABASE (Jika Ada)
+  let fileUrl = '';
+  let fileName = '';
   
-  // Mengubah data file jadi bentuk buffer (kode biner) biar bisa dikirim lewat NodeJS
-  const arrayBuffer = await lampiranFile.arrayBuffer();
-  const buffer = new Uint8Array(arrayBuffer);
+  if (lampiranFile) {
+    // Ambil tipe file (pdf/jpg) lalu kasih nama unik gabungan (ID User + Waktu Sekarang) biar nggak nimpa file orang lain
+    const fileExt = lampiranFile.name.split('.').pop();
+    fileName = `${user.id}-${Date.now()}.${fileExt}`;
+    
+    // Mengubah data file jadi bentuk buffer (kode biner) biar bisa dikirim lewat NodeJS
+    const arrayBuffer = await lampiranFile.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
 
-  // Upload ke bucket 'lampiran' di Supabase
-  const { error: uploadError } = await authClient
-    .storage
-    .from('lampiran')
-    .upload(fileName, buffer, {
-      contentType: lampiranFile.type,
-      upsert: true
-    });
+    // Upload ke bucket 'lampiran' di Supabase
+    const { error: uploadError } = await authClient
+      .storage
+      .from('lampiran')
+      .upload(fileName, buffer, {
+        contentType: lampiranFile.type,
+        upsert: true
+      });
 
-  if (uploadError) {
-    console.error('[Action: createBooking] Gagal upload:', uploadError);
-    return { success: false, message: 'Gagal mengupload lampiran surat: ' + uploadError.message };
+    if (uploadError) {
+      console.error('[Action: createBooking] Gagal upload:', uploadError);
+      return { success: false, message: 'Gagal mengupload lampiran surat: ' + uploadError.message };
+    }
+
+    // Setelah sukses di-upload, minta link publik (URL) filenya
+    const { data: publicUrlData } = authClient.storage.from('lampiran').getPublicUrl(fileName);
+    fileUrl = publicUrlData.publicUrl;
   }
-
-  // Setelah sukses di-upload, minta link publik (URL) filenya
-  const { data: publicUrlData } = authClient.storage.from('lampiran').getPublicUrl(fileName);
-  const fileUrl = publicUrlData.publicUrl;
 
   // 8. SIMPAN DATA RESERVASI KE DATABASE
   // Bikin kode booking otomatis (contoh: RSV-1234-99)
@@ -180,24 +185,28 @@ export async function createBooking(prevState: any, formData: FormData) {
   // Kalau ternyata gagal nyimpen ke database (tapi file terlanjur ke-upload), 
   // kita hapus aja filenya lagi biar gak nyampah di storage (Rollback)
   if (reservasiError || !reservasiData) {
-    console.error('[Action: createBooking] Gagal simpan DB:', reservasiError);
-    await authClient.storage.from('lampiran').remove([fileName]);
-    return { success: false, message: 'Gagal melakukan pemesanan sistem: ' + reservasiError?.message };
+    console.error('[Action: createBooking] Gagal insert reservasi:', reservasiError);
+    // Kalau tadi udah terlanjur upload file, kita hapus lagi filenya (Rollback) biar storage nggak penuh nyampah
+    if (fileName) {
+      await authClient.storage.from('lampiran').remove([fileName]);
+    }
+    return { success: false, message: 'Gagal melakukan pemesanan: ' + reservasiError?.message };
   }
   
-  // 9. SIMPAN DETAIL FILE LAMPIRAN KE TABEL LAMPIRAN
-  // Ngasih tahu database kalau file ini tuh punyanya reservasi yang barusan kita bikin
-  const { error: lampiranError } = await authClient
-    .from('lampiran')
-    .insert({
-      id_reservasi: reservasiData.id_reservasi,
-      nama_file: lampiranFile.name,
-      file_path: fileUrl
-    });
-    
-  if (lampiranError) {
-      console.error('[Action: createBooking] Data lampiran gagal masuk:', lampiranError);
-      // Gak usah dibatalin reservasinya kalau error cuma di detail metadata ini
+  // 9. SIMPAN INFO LAMPIRAN KE TABEL LAMPIRAN (Jika ada file)
+  if (lampiranFile && fileUrl) {
+    const { error: lampiranError } = await authClient
+      .from('lampiran')
+      .insert({
+        id_reservasi: reservasiData.id_reservasi,
+        nama_file: lampiranFile.name,
+        file_path: fileUrl
+      });
+      
+    if (lampiranError) {
+        console.error('[Action: createBooking] Gagal simpan data lampiran:', lampiranError);
+        // Nggak usah dibatalin reservasinya kalau error ini, cuma filenya aja yang nggak kelink
+    }
   }
   
   // 10. REFRESH HALAMAN (Biar keliatan data barunya tanpa user mencet F5)

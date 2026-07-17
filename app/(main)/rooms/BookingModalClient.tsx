@@ -263,12 +263,12 @@ export default function BookingModalClient({
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 hidden">
                 <label className="text-sm font-bold text-foreground/80">Jumlah Peserta</label>
                 <input
                   type="number"
                   name="jumlahPeserta"
-                  required
+                  defaultValue="1"
                   min="1"
                   max={room.capacity}
                   className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
@@ -287,7 +287,7 @@ export default function BookingModalClient({
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 hidden">
                 <label className="text-sm font-bold text-foreground/80 flex items-center justify-between">
                   <span>Lampiran Proposal / Surat Izin (Wajib)</span>
                   <span className="text-[10px] font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full border">Format: PDF/JPG/PNG (Maks 2MB)</span>
@@ -296,7 +296,6 @@ export default function BookingModalClient({
                   <input
                     type="file"
                     name="lampiran"
-                    required
                     accept=".pdf,.jpg,.jpeg,.png"
                     className="w-full text-muted-foreground file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
                   />
