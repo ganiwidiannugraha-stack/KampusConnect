@@ -22,37 +22,40 @@ async function getAuthClient() {
 export async function getRoomsForSelect() {
   const authClient = await getAuthClient();
   const { data: rooms, error } = await authClient
-    .from('rooms')
-    .select('id, name, capacity')
-    .eq('is_active', true);
+    .from('ruangan')
+    .select('id_ruangan, nama_ruangan, kapasitas')
+    .eq('status', 'Tersedia');
 
   if (error) {
     console.error('Error fetching rooms:', error);
     return [];
   }
-  return rooms || [];
+  // Format ke ekspektasi komponen jika perlu, atau ubah tipe
+  return (rooms || []).map(r => ({ id: r.id_ruangan, name: r.nama_ruangan, capacity: r.kapasitas }));
 }
 
 export async function createBooking(prevState: any, formData: FormData) {
-  const roomId = formData.get('roomId') as string;
+  const roomIdStr = formData.get('roomId') as string;
   const date = formData.get('date') as string;
   const startTime = formData.get('startTime') as string;
   const endTime = formData.get('endTime') as string;
   const reason = formData.get('reason') as string;
+  const jumlahPesertaStr = formData.get('jumlahPeserta') as string;
+  const lampiranFile = formData.get('lampiran') as File;
 
-  if (!roomId || !date || !startTime || !endTime || !reason) {
-    return { success: false, message: 'Semua kolom wajib diisi!' };
+  if (!roomIdStr || !date || !startTime || !endTime || !reason || !jumlahPesertaStr || !lampiranFile) {
+    return { success: false, message: 'Semua kolom (termasuk lampiran) wajib diisi!' };
+  }
+  
+  if (lampiranFile.size === 0) {
+     return { success: false, message: 'File lampiran tidak valid atau kosong.' };
   }
 
-  // Validasi panjang reason
+  const roomId = parseInt(roomIdStr, 10);
+  const jumlahPeserta = parseInt(jumlahPesertaStr, 10);
+
   if (reason.length > 500) {
     return { success: false, message: 'Tujuan kegiatan maksimal 500 karakter.' };
-  }
-
-  // Validasi format UUID untuk roomId
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(roomId)) {
-    return { success: false, message: 'ID ruangan tidak valid.' };
   }
 
   const user = await getCurrentUser();
@@ -63,7 +66,7 @@ export async function createBooking(prevState: any, formData: FormData) {
   // Validasi SOP H-3
   const bookingDate = new Date(date);
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset time to midnight
+  today.setHours(0, 0, 0, 0);
   const diffTime = bookingDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
@@ -71,17 +74,28 @@ export async function createBooking(prevState: any, formData: FormData) {
     return { success: false, message: 'Sesuai SOP, reservasi harus dilakukan minimal H-3 sebelum kegiatan.' };
   }
 
-  // Supabase RLS or database trigger should ideally handle conflict detection, 
-  // but let's check it here manually for simple overlap logic
   const authClient = await getAuthClient();
+  
+  // Validasi Kapasitas Ruangan
+  const { data: roomData } = await authClient
+    .from('ruangan')
+    .select('kapasitas')
+    .eq('id_ruangan', roomId)
+    .single();
+    
+  if (roomData && jumlahPeserta > roomData.kapasitas) {
+      return { success: false, message: `Jumlah peserta (${jumlahPeserta}) melebihi kapasitas ruangan (${roomData.kapasitas} orang).` };
+  }
+
+  // Cek bentrok jadwal
   const { data: overlapping } = await authClient
-    .from('bookings')
-    .select('id')
-    .eq('room_id', roomId)
-    .eq('date', date)
-    .not('status', 'eq', 'DITOLAK')
-    .not('status', 'eq', 'DIBATALKAN')
-    .or(`and(start_time.lt.${endTime},end_time.gt.${startTime})`);
+    .from('reservasi')
+    .select('id_reservasi')
+    .eq('id_ruangan', roomId)
+    .eq('tanggal_pakai', date)
+    .not('status', 'eq', 'Ditolak')
+    .not('status', 'eq', 'Dibatalkan')
+    .or(`and(jam_mulai.lt.${endTime},jam_selesai.gt.${startTime})`);
 
   if (overlapping && overlapping.length > 0) {
     return { success: false, message: 'Ruangan sudah dipesan pada waktu tersebut.' };
@@ -91,25 +105,69 @@ export async function createBooking(prevState: any, formData: FormData) {
     return { success: false, message: 'Waktu mulai harus sebelum waktu selesai.' };
   }
 
-  const { error } = await authClient
-    .from('bookings')
-    .insert({
-      room_id: roomId,
-      user_id: user.id,
-      organization_id: user.organization?.id || null,
-      date,
-      start_time: startTime,
-      end_time: endTime,
-      reason,
-      status: 'MENUNGGU'
-    });
+  // 1. Upload File Lampiran ke Supabase Storage
+  const fileExt = lampiranFile.name.split('.').pop();
+  const fileName = `${user.id}-${Date.now()}.${fileExt}`;
   
-  if (error) {
-    console.error('Booking error:', error);
-    return { success: false, message: 'Gagal melakukan pemesanan: ' + error.message };
+  // Convert File to ArrayBuffer for uploading in Next.js Server Action
+  const arrayBuffer = await lampiranFile.arrayBuffer();
+  const buffer = new Uint8Array(arrayBuffer);
+
+  const { error: uploadError } = await authClient
+    .storage
+    .from('lampiran')
+    .upload(fileName, buffer, {
+      contentType: lampiranFile.type,
+      upsert: true
+    });
+
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    return { success: false, message: 'Gagal mengupload lampiran: ' + uploadError.message };
+  }
+
+  // Ambil URL Publik File
+  const { data: publicUrlData } = authClient.storage.from('lampiran').getPublicUrl(fileName);
+  const fileUrl = publicUrlData.publicUrl;
+
+  // 2. Insert Reservasi
+  const kodeReservasi = `RSV-${Date.now().toString().slice(-4)}-${Math.floor(Math.random() * 100)}`;
+  const { data: reservasiData, error: reservasiError } = await authClient
+    .from('reservasi')
+    .insert({
+      kode_reservasi: kodeReservasi,
+      id_ruangan: roomId,
+      id_user: user.id,
+      tanggal_pakai: date,
+      jam_mulai: startTime,
+      jam_selesai: endTime,
+      jumlah_peserta: jumlahPeserta,
+      keperluan: reason,
+      status: 'Menunggu'
+    }).select('id_reservasi').single();
+  
+  if (reservasiError || !reservasiData) {
+    console.error('Booking error:', reservasiError);
+    // Rollback delete file
+    await authClient.storage.from('lampiran').remove([fileName]);
+    return { success: false, message: 'Gagal melakukan pemesanan: ' + reservasiError?.message };
+  }
+  
+  // 3. Insert Lampiran Data
+  const { error: lampiranError } = await authClient
+    .from('lampiran')
+    .insert({
+      id_reservasi: reservasiData.id_reservasi,
+      nama_file: lampiranFile.name,
+      file_path: fileUrl
+    });
+    
+  if (lampiranError) {
+      console.error('Lampiran error:', lampiranError);
+      // We don't rollback the booking here, but it's an edge case
   }
   
   revalidatePath('/rooms');
-  revalidatePath('/booking');
+  revalidatePath('/my-bookings');
   return { success: true, message: 'Reservasi berhasil diajukan! Status: Menunggu Persetujuan.' };
 }

@@ -36,7 +36,7 @@ export async function loginAction(prevState: any, formData: FormData) {
   // Fetch user profile and role
   const { data: profile } = await supabaseAdmin
     .from('profiles')
-    .select('*, roles(can_access_dashboard)')
+    .select('*, roles(name)')
     .eq('id', data.user.id)
     .single();
 
@@ -50,7 +50,8 @@ export async function loginAction(prevState: any, formData: FormData) {
   });
 
   // Determine redirect based on role
-  if (profile?.roles?.can_access_dashboard) {
+  const isAdmin = profile?.roles && (profile.roles as any).name === 'Administrator';
+  if (isAdmin) {
     redirect('/admin');
   } else {
     redirect('/my-bookings');

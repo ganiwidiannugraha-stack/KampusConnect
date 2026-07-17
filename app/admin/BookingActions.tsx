@@ -8,7 +8,7 @@ export function BookingActions({ bookingId, currentStatus }: { bookingId: string
   const router = useRouter();
   
   // State for the undo mechanism (IMK: Permit easy reversal of actions)
-  const [pendingAction, setPendingAction] = useState<'DISETUJUI' | 'DITOLAK' | null>(null);
+  const [pendingAction, setPendingAction] = useState<'Disetujui' | 'Ditolak' | null>(null);
   const [countdown, setCountdown] = useState(5);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -23,7 +23,7 @@ export function BookingActions({ bookingId, currentStatus }: { bookingId: string
     return () => clearTimeout(timer);
   }, [pendingAction, countdown]);
 
-  const handleActionClick = (action: 'DISETUJUI' | 'DITOLAK') => {
+  const handleActionClick = (action: 'Disetujui' | 'Ditolak') => {
     setPendingAction(action);
     setCountdown(5);
   };
@@ -32,7 +32,7 @@ export function BookingActions({ bookingId, currentStatus }: { bookingId: string
     setPendingAction(null); // Membatalkan aksi dengan seketika
   };
 
-  const executeAction = async (action: 'DISETUJUI' | 'DITOLAK') => {
+  const executeAction = async (action: 'Disetujui' | 'Ditolak') => {
     setIsProcessing(true);
     await updateBookingStatus(bookingId, action);
     setIsProcessing(false);
@@ -41,7 +41,7 @@ export function BookingActions({ bookingId, currentStatus }: { bookingId: string
   };
 
   // Visibility of system status
-  if (currentStatus !== 'MENUNGGU') {
+  if (currentStatus !== 'Menunggu') {
     return <div className="text-center text-[11px] text-muted-foreground font-bold uppercase tracking-wider flex justify-center w-full">- Selesai -</div>;
   }
 
@@ -59,7 +59,7 @@ export function BookingActions({ bookingId, currentStatus }: { bookingId: string
     return (
       <div className="flex flex-col items-center justify-center space-y-2 w-full animate-in fade-in zoom-in-95 duration-200">
         <span className="text-[11px] font-bold text-foreground">
-          {pendingAction === 'DISETUJUI' ? 'Menyetujui' : 'Menolak'} dalam {countdown}s...
+          {pendingAction === 'Disetujui' ? 'Menyetujui' : 'Menolak'} dalam {countdown}s...
         </span>
         <button 
           onClick={handleUndo}
@@ -75,13 +75,13 @@ export function BookingActions({ bookingId, currentStatus }: { bookingId: string
   return (
     <div className="flex gap-2 justify-center w-full">
       <button 
-        onClick={() => handleActionClick('DISETUJUI')}
+        onClick={() => handleActionClick('Disetujui')}
         className="px-4 py-1.5 bg-primary/90 hover:bg-primary text-primary-foreground text-xs font-bold rounded-lg transition-all shadow-sm hover:scale-105 active:scale-95"
       >
         Setujui
       </button>
       <button 
-        onClick={() => handleActionClick('DITOLAK')}
+        onClick={() => handleActionClick('Ditolak')}
         className="px-4 py-1.5 bg-red-600/90 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-all shadow-sm hover:scale-105 active:scale-95"
       >
         Tolak

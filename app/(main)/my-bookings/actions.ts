@@ -34,51 +34,59 @@ export async function getMyBookings() {
   if (!user) return [];
 
   const { data: bookings, error } = await supabaseAdmin
-    .from('bookings')
+    .from('reservasi')
     .select(`
-      id,
-      rooms (
-        name
+      id_reservasi,
+      kode_reservasi,
+      ruangan (
+        nama_ruangan
       ),
-      date,
-      start_time,
-      end_time,
-      reason,
+      tanggal_pakai,
+      jam_mulai,
+      jam_selesai,
+      jumlah_peserta,
+      keperluan,
       status,
-      created_at
+      tanggal_pengajuan,
+      lampiran (id_lampiran, nama_file, file_path)
     `)
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    .eq('id_user', user.id)
+    .order('tanggal_pengajuan', { ascending: false });
 
   if (error) {
     console.error("Failed to fetch bookings:", error);
     return [];
   }
 
-  return bookings.map(b => ({
-    ...b,
-    room: b.rooms,
-    startTime: b.start_time,
-    endTime: b.end_time,
-    createdAt: b.created_at
+  return bookings.map((b: any) => ({
+    id: b.id_reservasi,
+    booking_id: b.kode_reservasi,
+    room: { name: b.ruangan?.nama_ruangan },
+    date: b.tanggal_pakai,
+    startTime: b.jam_mulai,
+    endTime: b.jam_selesai,
+    reason: b.keperluan,
+    jumlahPeserta: b.jumlah_peserta,
+    status: b.status,
+    createdAt: b.tanggal_pengajuan,
+    lampiran: b.lampiran || []
   }));
 }
 
-export async function cancelBooking(bookingId: string) {
+export async function cancelBooking(bookingIdStr: string) {
   const user = await getCurrentUser();
   if (!user) return { success: false, message: 'Harap login terlebih dahulu' };
 
-  // Validasi format UUID
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(bookingId)) {
+  const bookingId = parseInt(bookingIdStr, 10);
+  if (isNaN(bookingId)) {
     return { success: false, message: 'ID reservasi tidak valid' };
   }
 
   // Get booking to check date & ownership
   const { data: booking, error: getError } = await supabaseAdmin
-    .from('bookings')
-    .select('id, date, status, user_id')
-    .eq('id', bookingId)
+    .from('reservasi')
+    .select('id_reservasi, tanggal_pakai, status, id_user')
+    .eq('id_reservasi', bookingId)
     .single();
   
   if (getError || !booking) {
@@ -86,16 +94,16 @@ export async function cancelBooking(bookingId: string) {
   }
 
   // Ownership check: user hanya bisa batalkan miliknya sendiri
-  if (booking.user_id !== user.id) {
+  if (booking.id_user !== user.id) {
     return { success: false, message: 'Anda tidak berhak membatalkan reservasi ini' };
   }
 
-  if (booking.status === 'DITOLAK' || booking.status === 'DIBATALKAN') {
-    return { success: false, message: 'Reservasi sudah tidak aktif' };
+  if (booking.status === 'Ditolak' || booking.status === 'Dibatalkan' || booking.status === 'Selesai') {
+    return { success: false, message: 'Reservasi sudah tidak aktif atau selesai' };
   }
 
   // Cek batas H-1
-  const bookingDate = new Date(booking.date);
+  const bookingDate = new Date(booking.tanggal_pakai);
   const today = new Date();
   
   bookingDate.setHours(0, 0, 0, 0);
@@ -111,9 +119,9 @@ export async function cancelBooking(bookingId: string) {
   // Gunakan auth client agar tunduk pada RLS
   const authClient = await getAuthClient();
   const { error: updateError } = await authClient
-    .from('bookings')
-    .update({ status: 'DIBATALKAN' })
-    .eq('id', bookingId);
+    .from('reservasi')
+    .update({ status: 'Dibatalkan' })
+    .eq('id_reservasi', bookingId);
   
   if (!updateError) {
     return { success: true, message: 'Reservasi berhasil dibatalkan' };

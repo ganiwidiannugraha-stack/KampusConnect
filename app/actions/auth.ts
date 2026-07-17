@@ -21,18 +21,19 @@ export async function getCurrentUser() {
 
   const { data: profile } = await supabaseAdmin
     .from('profiles')
-    .select('id, name, organization_id, roles(can_access_dashboard)')
+    .select('id, nama, id_organisasi, roles(name)')
     .eq('id', user.id)
     .single();
 
   if (profile) {
+    const isAdmin = profile.roles && (profile.roles as any).name === 'Administrator';
     return {
       id: profile.id,
-      name: profile.name,
+      name: profile.nama,
       role: {
-        canAccessDashboard: (profile.roles as any)?.can_access_dashboard || false,
+        canAccessDashboard: isAdmin,
       },
-      organization: profile.organization_id ? { id: profile.organization_id } : null,
+      organization: profile.id_organisasi ? { id: profile.id_organisasi } : null,
     };
   }
   return null;

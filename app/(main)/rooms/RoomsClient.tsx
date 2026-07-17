@@ -101,7 +101,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
     };
 
     rooms.forEach(room => {
-      const loc = room.location || "Gedung Pusat Kegiatan Kampus";
+      const loc = room.gedung || "Gedung Pusat Kegiatan Kampus";
       if (loc in c.location) {
         c.location[loc as keyof typeof c.location]++;
       } else {
@@ -153,7 +153,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
     }
 
     // 3. Filter Lokasi
-    const roomLoc = room.location || "Gedung Pusat Kegiatan Kampus";
+    const roomLoc = room.gedung || "Gedung Pusat Kegiatan Kampus";
     if (selectedLocations.length > 0 && !selectedLocations.includes(roomLoc)) {
       return false;
     }
@@ -633,7 +633,7 @@ export default function RoomsClient({ rooms }: { rooms: any[] }) {
                           {/* Lokasi */}
                           <div className="flex items-center gap-1.5 text-muted-foreground mb-3">
                              <MapPin className="w-4 h-4 shrink-0" />
-                             <span className="text-[13px] truncate font-medium">{room.location || "Gedung Pusat Kegiatan Kampus"}</span>
+                             <span className="text-[13px] truncate font-medium">{room.gedung || "Gedung Pusat Kegiatan Kampus"}</span>
                           </div>
 
                           {/* Fasilitas Chips */}

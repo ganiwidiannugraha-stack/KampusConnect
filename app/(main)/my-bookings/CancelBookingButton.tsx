@@ -17,7 +17,7 @@ export function CancelBookingButton({ bookingId, bookingDate, status }: CancelBu
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   // Jika status sudah final, jangan tampilkan tombol
-  if (status === 'DIBATALKAN' || status === 'DITOLAK') {
+  if (status === 'Dibatalkan' || status === 'Ditolak' || status === 'Selesai') {
     return null;
   }
 

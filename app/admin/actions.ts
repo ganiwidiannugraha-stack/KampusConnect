@@ -59,72 +59,76 @@ async function requireAdmin() {
 export async function getBookings() {
   const authClient = await getAuthClient();
   const { data: bookings, error } = await authClient
-    .from('bookings')
+    .from('reservasi')
     .select(`
-      id,
-      room:rooms (name),
-      user:profiles (name, email),
-      date,
-      start_time,
-      end_time,
-      reason,
+      id_reservasi,
+      kode_reservasi,
+      ruangan (nama_ruangan),
+      profiles (nama),
+      tanggal_pakai,
+      jam_mulai,
+      jam_selesai,
+      jumlah_peserta,
+      keperluan,
       status,
-      created_at
+      tanggal_pengajuan,
+      lampiran (id_lampiran, nama_file, file_path)
     `)
-    .order('created_at', { ascending: false })
-    .limit(500); // Batasan hard limit untuk mencegah memory bloat pada Vercel Edge functions.
+    .order('tanggal_pengajuan', { ascending: false })
+    .limit(500);
 
   if (error) {
     console.error('[Action: getBookings] Eksekusi query gagal:', error.message);
     return [];
   }
   
-  // Layer Normalisasi: memetakan snake_case dari DB menjadi camelCase untuk kebutuhan UI frontend.
+  // Layer Normalisasi: memetakan struktur DB V2 ke UI frontend (BookingList)
   return (bookings || []).map((b: any) => ({
-    ...b,
-    startTime: b.start_time,
-    endTime: b.end_time
+    id: b.id_reservasi,
+    booking_id: b.kode_reservasi,
+    room: { name: b.ruangan?.nama_ruangan },
+    user: { name: b.profiles?.nama },
+    date: b.tanggal_pakai,
+    startTime: b.jam_mulai,
+    endTime: b.jam_selesai,
+    reason: b.keperluan,
+    jumlahPeserta: b.jumlah_peserta,
+    status: b.status,
+    created_at: b.tanggal_pengajuan,
+    lampiran: b.lampiran || []
   }));
 }
 
-/**
- * Mengubah status dari sebuah reservasi.
- * Mengenkapsulasi logika pembaruan di dalam batas RBAC (Role-Based Access Control) dan menghasilkan riwayat audit (audit trail).
- * 
- * @param {string} bookingId - UUID dari reservasi yang ditargetkan.
- * @param {'DISETUJUI' | 'DITOLAK'} status - Status penyelesaian yang diinginkan.
- * @returns {Promise<{success: boolean, message?: string}>} Indikator keberhasilan operasi.
- */
-export async function updateBookingStatus(bookingId: string, status: 'DISETUJUI' | 'DITOLAK') {
-  // 1. Fase Otorisasi (Authorization Phase)
+export async function updateBookingStatus(bookingId: string, status: 'Disetujui' | 'Ditolak') {
+  // 1. Fase Otorisasi
   const { authorized, user: admin } = await requireAdmin();
   if (!authorized) {
     return { success: false, message: 'Akses ditolak. Hanya administrator yang dapat memproses reservasi.' };
   }
 
-  // 2. Fase Validasi Payload (Payload Validation Phase)
-  if (!bookingId || !['DISETUJUI', 'DITOLAK'].includes(status)) {
-    return { success: false, message: 'Parameter tidak valid (Mismatched schema).' };
+  // 2. Validasi
+  if (!bookingId || !['Disetujui', 'Ditolak'].includes(status)) {
+    return { success: false, message: 'Parameter tidak valid.' };
   }
 
   const authClient = await getAuthClient();
 
-  // 3. Fase Eksekusi: Pembaruan DB secara Optimistis (Optimistic DB Update)
+  // 3. Update DB
   const { error } = await authClient
-    .from('bookings')
+    .from('reservasi')
     .update({ status })
-    .eq('id', bookingId);
+    .eq('id_reservasi', bookingId);
     
   if (!error) {
-    // 4. Pencatatan Audit Trail (Logika Fire-and-forget)
-    await authClient.from('approvals').insert({
-      booking_id: bookingId,
-      admin_id: admin?.id || null,
+    // 4. Audit Trail (approval)
+    await authClient.from('approval').insert({
+      id_reservasi: parseInt(bookingId, 10),
+      id_admin: admin?.id || null,
       status: status,
-      notes: "Diproses oleh Admin Dashboard (System Generated)"
+      catatan: "Diproses oleh Admin Dashboard"
     });
 
-    // 5. Invalidate Cache: Memicu Server Components untuk melakukan re-render dengan data terbaru.
+    // 5. Invalidate Cache
     revalidatePath('/admin');
     revalidatePath('/admin/schedule');
     return { success: true };
@@ -137,35 +141,26 @@ export async function updateBookingStatus(bookingId: string, status: 'DISETUJUI'
 export async function getPendingBookingsCount() {
   const authClient = await getAuthClient();
   const { count, error } = await authClient
-    .from('bookings')
+    .from('reservasi')
     .select('*', { count: 'exact', head: true })
-    .eq('status', 'MENUNGGU');
+    .eq('status', 'Menunggu');
     
   if (error) return 0;
   return count || 0;
 }
 
-/**
- * Mengagregasi data analitik statistik untuk tampilan tingkat tinggi (high-level dashboard).
- * Menggunakan modifier Postgres `count: 'exact'` untuk menghindari penarikan payload berat ke dalam memori aplikasi,
- * mengalihkan seluruh beban komputasi secara langsung ke mesin database.
- * 
- * @returns {Promise<{totalRooms: number, activeRooms: number, inactiveRooms: number, totalUsers: number}>}
- */
 export async function getDashboardStats() {
   const authClient = await getAuthClient();
   
-  // Eksekusi paralel dari antrean query independen dapat dipertimbangkan di sini dengan Promise.all(),
-  // namun menunggu eksekusi secara berurutan (sequential) sementara waktu ini membantu log trace lebih bersih.
   const { count: roomsCount } = await authClient
-    .from('rooms')
+    .from('ruangan')
     .select('*', { count: 'exact', head: true })
-    .eq('is_active', true);
+    .eq('status', 'Tersedia');
 
   const { count: inactiveRoomsCount } = await authClient
-    .from('rooms')
+    .from('ruangan')
     .select('*', { count: 'exact', head: true })
-    .eq('is_active', false);
+    .neq('status', 'Tersedia');
 
   const { count: usersCount } = await authClient
     .from('profiles')

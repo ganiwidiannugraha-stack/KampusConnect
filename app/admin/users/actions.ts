@@ -41,19 +41,19 @@ export async function getUsers() {
     .from('profiles')
     .select(`
       id,
-      name,
-      email,
+      nama,
       role:roles (
         id,
         name
       ),
-      organization:organizations (
-        id,
-        name
-      )
+      organisasi:organisasi (
+        id_organisasi,
+        nama
+      ),
+      status
     `)
-    .eq('is_active', true)
-    .order('name');
+    .eq('status', 'Aktif')
+    .order('nama');
     
   if (error) {
     console.error('Error fetching users:', error);
@@ -75,9 +75,9 @@ export async function getRoles() {
 export async function getOrganizations() {
   const adminClient = getSupabaseAdmin();
   const { data: orgs, error } = await adminClient
-    .from('organizations')
-    .select('id, name')
-    .order('name');
+    .from('organisasi')
+    .select('id_organisasi, nama')
+    .order('nama');
     
   return error ? [] : (orgs || []);
 }
@@ -99,8 +99,7 @@ export async function saveUser(formData: FormData, userId?: string) {
   }
   
   const data: any = {
-    name,
-    email,
+    nama: name,
   };
 
   if (roleId) {
@@ -108,9 +107,9 @@ export async function saveUser(formData: FormData, userId?: string) {
   }
   
   if (organizationId) {
-    data.organization_id = organizationId;
+    data.id_organisasi = organizationId;
   } else if (userId) {
-    data.organization_id = null;
+    data.id_organisasi = null;
   }
 
   let error;

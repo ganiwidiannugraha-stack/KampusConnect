@@ -18,9 +18,9 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
 
   const filteredBookings = bookings.filter((b) => {
     if (activeTab === 'aktif') {
-      return b.status === 'MENUNGGU' || b.status === 'DISETUJUI';
+      return b.status === 'Menunggu' || b.status === 'Disetujui';
     } else {
-      return b.status === 'DITOLAK' || b.status === 'DIBATALKAN';
+      return b.status === 'Ditolak' || b.status === 'Dibatalkan' || b.status === 'Selesai';
     }
   });
 
@@ -126,16 +126,29 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
                   {booking.reason}
                 </td>
                 <td className="px-6 py-4 text-center">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${booking.status === 'DISETUJUI' ? 'bg-green-500/20 text-green-700' :
-                      booking.status === 'DITOLAK' ? 'bg-red-500/20 text-red-700' :
-                        booking.status === 'DIBATALKAN' ? 'bg-muted text-muted-foreground' :
-                          'bg-yellow-500/20 text-yellow-700'
-                    }`}>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                    booking.status === 'Disetujui' ? 'bg-green-500/20 text-green-700' :
+                    booking.status === 'Ditolak' ? 'bg-red-500/20 text-red-700' :
+                    booking.status === 'Dibatalkan' ? 'bg-muted text-muted-foreground' :
+                    booking.status === 'Selesai' ? 'bg-blue-500/20 text-blue-700' :
+                    'bg-yellow-500/20 text-yellow-700'
+                  }`}>
                     {booking.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="flex items-center justify-center gap-2">
+                    {booking.lampiran && booking.lampiran.length > 0 && (
+                      <a 
+                        href={booking.lampiran[0].file_path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 text-xs font-bold rounded-lg border border-blue-500/20 transition-colors"
+                        title="Lihat Lampiran"
+                      >
+                        File
+                      </a>
+                    )}
                     <DownloadPdfButton booking={booking} userName={user!.name} />
                     <CancelBookingButton
                       bookingId={booking.id}
@@ -172,10 +185,12 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
                   Diajukan: {new Date(booking.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
-              <span className={`shrink-0 px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-black ${booking.status === 'DISETUJUI' ? 'bg-green-500/10 border border-green-500/20 text-green-700' :
-                  booking.status === 'DITOLAK' ? 'bg-red-500/10 border border-red-500/20 text-red-700' :
-                    booking.status === 'DIBATALKAN' ? 'bg-muted border border-border text-muted-foreground' :
-                      'bg-yellow-500/10 border border-yellow-500/20 text-yellow-700'
+              <span className={`shrink-0 px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-black ${
+                  booking.status === 'Disetujui' ? 'bg-green-500/10 border border-green-500/20 text-green-700' :
+                  booking.status === 'Ditolak' ? 'bg-red-500/10 border border-red-500/20 text-red-700' :
+                  booking.status === 'Dibatalkan' ? 'bg-muted border border-border text-muted-foreground' :
+                  booking.status === 'Selesai' ? 'bg-blue-500/10 border border-blue-500/20 text-blue-700' :
+                  'bg-yellow-500/10 border border-yellow-500/20 text-yellow-700'
                 }`}>
                 {booking.status}
               </span>
@@ -196,13 +211,27 @@ export function MyBookingsClient({ bookings, user }: MyBookingsClientProps) {
               </div>
             </div>
 
-            <div className="pt-2 flex items-center gap-2">
-              <DownloadPdfButton booking={booking} userName={user!.name} />
-              <CancelBookingButton
-                bookingId={booking.id}
-                bookingDate={booking.date}
-                status={booking.status}
-              />
+            <div className="pt-2 flex flex-wrap items-center gap-2">
+              {booking.lampiran && booking.lampiran.length > 0 && (
+                <a
+                  href={booking.lampiran[0].file_path}
+                  target="_blank"
+                  rel="noopener noreferrer" 
+                  className="px-3 py-1.5 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 text-xs font-bold rounded-lg border border-blue-500/20 transition-colors flex-1 text-center"
+                >
+                  File
+                </a>
+              )}
+              <div className="flex-1">
+                <DownloadPdfButton booking={booking} userName={user!.name} />
+              </div>
+              <div className="flex-1">
+                <CancelBookingButton
+                  bookingId={booking.id}
+                  bookingDate={booking.date}
+                  status={booking.status}
+                />
+              </div>
             </div>
           </div>
         ))}

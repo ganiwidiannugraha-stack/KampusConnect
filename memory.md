@@ -224,3 +224,36 @@ Mengingat aplikasi sudah berstatus **Live** (di-*hosting* di Vercel), setiap per
 | Jul 2026 | Polish UI: dark mode, responsive, pagination |
 | 12 Jul 2026 | Stabilisasi: lock versi, security audit, seed data, dokumentasi |
 | 13 Jul 2026 | Update layout loading state, integrasi Vercel Speed Insights, penambahan SOP Deployment |
+
+---
+
+## 10. Profil Dosen Penguji (Target Audience)
+
+> Catatan penting agar AI tidak salah mengambil keputusan saat merancang simulasi presentasi.
+
+- **Level Teknis:** Senior Fullstack Developer (Sangat mengerti arsitektur, clean code, dan fungsionalitas riil).
+- **Peran Akademis:** Dosen penguji sidang skripsi (Standar tinggi untuk kebenaran ERD, dokumentasi, dan logika sistem).
+- **Pengalaman:** Juri lomba coding (Sangat teliti mendeteksi bug, UI/UX yang tidak logis, atau fitur yang di-mocking asal-asalan).
+- **Latar Belakang Lain:** Pengusaha / Afiliator (Mengerti nilai bisnis dan efisiensi dari sebuah aplikasi).
+
+**Strategi Menghadapinya:**
+Karena beliau adalah *Senior Fullstack Dev*, kita tidak bisa berbohong soal teknis. Fitur simulasi (seperti SSO/Lupa Sandi) **HARUS** diakui sebagai *"mocking untuk keperluan presentasi UI karena keterbatasan kredensial API"*, alih-alih berpura-pura itu fitur asli. Beliau akan sangat mengapresiasi kejujuran teknis, arsitektur yang benar, dan penggunaan *mocking* yang memang merupakan standar industri.
+
+---
+
+## 11. Strategi Pemisahan & Keamanan Versi (V1 vs V2)
+
+> **PENTING:** Aturan ini dibuat agar AI tidak berhalusinasi atau mencampuradukkan *database* V1 (Stabil) dengan V2 (Eksperimental/Full ERD). Jika V2 gagal atau dirasa kurang bagus, User harus bisa kembali ke V1 dalam hitungan detik.
+
+### A. Manajemen *Branch* (GitHub & Vercel)
+- **V1 (MVP Stabil):** Akan selalu berada di *branch* `main`. Vercel akan membaca ini sebagai *Production URL*.
+- **V2 (Full ERD):** Akan dikerjakan di *branch* baru bernama `v2-full-erd`. Saat di-*push*, Vercel hanya akan menjadikannya *Preview URL* tanpa mengganggu V1.
+- **Rollback (Kembali ke V1):** Jika V2 bermasalah, kita cukup melakukan perintah `git checkout main` untuk kembali ke versi stabil dengan aman.
+
+### B. Manajemen Database & Environment Variables
+Kita TIDAK BOLEH hanya menggunakan satu file `.env.local` agar kredensial tidak tertukar.
+- **`.env.v1`**: Berisi kunci rahasia (*URL* & *Anon Key*) untuk database Supabase yang lama (Stabil).
+- **`.env.v2`**: Berisi kunci rahasia untuk database Supabase yang baru (Full ERD).
+- **SOP Pengerjaan:** Tergantung versi mana yang sedang dikerjakan, isi dari `.env.v1` atau `.env.v2` akan di-*copy* secara manual ke dalam `.env.local` (karena Next.js hanya membaca `.env.local`).
+
+Dengan strategi isolasi ketat ini, aplikasi KampusConnect dijamin aman dan memiliki "Tombol Darurat" untuk kembali ke versi stabil kapan saja.

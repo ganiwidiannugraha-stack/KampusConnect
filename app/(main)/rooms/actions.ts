@@ -8,43 +8,53 @@ const supabaseAdmin = createClient(
 
 export async function getRooms() {
   const { data: rooms, error } = await supabaseAdmin
-    .from('rooms')
+    .from('ruangan')
     .select(`
-      id,
-      name,
-      capacity,
-      facilities,
-      images,
-      is_active,
-      bookings (
+      *,
+      gedung (id_gedung, nama_gedung, lokasi),
+      ruangan_fasilitas (
         id,
-        date,
-        start_time,
-        end_time,
+        fasilitas (id_fasilitas, nama_fasilitas, icon)
+      ),
+      reservasi (
+        id_reservasi,
+        tanggal_pakai,
+        jam_mulai,
+        jam_selesai,
         status
       )
     `)
-    .eq('is_active', true)
-    .gte('bookings.date', new Date().toISOString().split('T')[0])
-    .in('bookings.status', ['MENUNGGU', 'DISETUJUI'])
-    .order('name', { ascending: true });
+    .in('status', ['Tersedia', 'Maintenance']) // Only show active rooms
+    .gte('reservasi.tanggal_pakai', new Date().toISOString().split('T')[0])
+    .in('reservasi.status', ['Menunggu', 'Disetujui'])
+    .order('nama_ruangan', { ascending: true });
 
   if (error) {
     console.error("Failed to fetch rooms from Supabase:", error);
     return [];
   }
 
-  // Filter bookings manually if Supabase hasn't filtered them
+  // Transform data to match UI expectations
   return rooms.map(room => {
     return {
-      ...room,
-      isActive: room.is_active, // Map to camelCase for the UI
-      bookings: room.bookings.filter((b: any) => 
-        b.status === 'MENUNGGU' || b.status === 'DISETUJUI'
+      id: room.id_ruangan,
+      name: room.nama_ruangan,
+      capacity: room.kapasitas,
+      lantai: room.lantai,
+      gedung: room.gedung?.nama_gedung || '',
+      facilities: room.ruangan_fasilitas?.map((rf: any) => rf.fasilitas?.nama_fasilitas).join(', ') || '',
+      facilitiesList: room.ruangan_fasilitas?.map((rf: any) => rf.fasilitas) || [],
+      images: room.foto ? [room.foto] : [],
+      status: room.status,
+      deskripsi: room.deskripsi,
+      bookings: (room.reservasi || []).filter((b: any) => 
+        b.status === 'Menunggu' || b.status === 'Disetujui'
       ).map((b: any) => ({
-        ...b,
-        startTime: b.start_time,
-        endTime: b.end_time
+        id: b.id_reservasi,
+        date: b.tanggal_pakai,
+        startTime: b.jam_mulai,
+        endTime: b.jam_selesai,
+        status: b.status
       }))
     }
   });

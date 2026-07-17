@@ -6,7 +6,7 @@ import { RoomModal } from './RoomModal';
 import { deleteRoom } from './actions';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
-export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
+export function RoomsClient({ initialRooms, buildings, facilities }: { initialRooms: any[], buildings: any[], facilities: any[] }) {
   const router = useRouter();
   const [rooms, setRooms] = useState(initialRooms);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,7 +14,7 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   // Pagination & Filter States
-  const [activeTab, setActiveTab] = useState<'SEMUA' | 'AKTIF' | 'NONAKTIF'>('SEMUA');
+  const [activeTab, setActiveTab] = useState<'SEMUA' | 'TERSEDIA' | 'MAINTENANCE' | 'TIDAK AKTIF'>('SEMUA');
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,12 +22,13 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
 
   // Deriving filtered & paginated data
   const filteredRooms = rooms.filter(r => {
-    if (activeTab === 'AKTIF' && !r.isActive) return false;
-    if (activeTab === 'NONAKTIF' && r.isActive) return false;
+    if (activeTab === 'TERSEDIA' && r.status !== 'Tersedia') return false;
+    if (activeTab === 'MAINTENANCE' && r.status !== 'Maintenance') return false;
+    if (activeTab === 'TIDAK AKTIF' && r.status !== 'Tidak Aktif') return false;
     
     if (search.trim() !== '') {
       const q = search.toLowerCase();
-      if (!r.name.toLowerCase().includes(q) && !(r.facilities || '').toLowerCase().includes(q)) {
+      if (!r.nama_ruangan?.toLowerCase().includes(q) && !r.gedung?.nama_gedung?.toLowerCase().includes(q)) {
         return false;
       }
     }
@@ -49,25 +50,24 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
   };
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
+  const [roomToDelete, setRoomToDelete] = useState<{id: string, name: string} | null>(null);
   const [deleteError, setDeleteError] = useState('');
 
-  const handleDelete = (id: string) => {
-    setRoomToDelete(id);
+  const handleDelete = (id: string, name: string) => {
+    setRoomToDelete({id, name});
     setIsConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!roomToDelete) return;
     
-    setDeletingId(roomToDelete);
+    setDeletingId(roomToDelete.id);
     setDeleteError('');
     setIsConfirmOpen(false);
     
-    const res = await deleteRoom(roomToDelete);
+    const res = await deleteRoom(roomToDelete.id, roomToDelete.name);
     if (res.success) {
-      setRooms(rooms.filter(r => r.id !== roomToDelete));
-      router.refresh();
+      window.location.reload();
     } else {
       setDeleteError(res.message || 'Gagal menghapus ruangan');
     }
@@ -83,7 +83,7 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
         {/* TABS & SEARCH */}
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
           {/* Tabs */}
-          <div className="bg-muted p-1 rounded-lg flex items-center">
+          <div className="bg-muted p-1 rounded-lg flex items-center overflow-x-auto whitespace-nowrap scrollbar-none">
             <button 
               onClick={() => { setActiveTab('SEMUA'); setCurrentPage(1); }}
               className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'SEMUA' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
@@ -91,14 +91,20 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
               Semua
             </button>
             <button 
-              onClick={() => { setActiveTab('AKTIF'); setCurrentPage(1); }}
-              className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'AKTIF' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => { setActiveTab('TERSEDIA'); setCurrentPage(1); }}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'TERSEDIA' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
-              Aktif
+              Tersedia
             </button>
             <button 
-              onClick={() => { setActiveTab('NONAKTIF'); setCurrentPage(1); }}
-              className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'NONAKTIF' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => { setActiveTab('MAINTENANCE'); setCurrentPage(1); }}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'MAINTENANCE' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Maintenance
+            </button>
+            <button 
+              onClick={() => { setActiveTab('TIDAK AKTIF'); setCurrentPage(1); }}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'TIDAK AKTIF' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Tidak Aktif
             </button>
@@ -109,7 +115,7 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <input 
               type="text" 
-              placeholder="Cari ruangan..." 
+              placeholder="Cari ruangan atau gedung..." 
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="w-full pl-9 pr-3 py-1.5 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary text-foreground h-full min-h-[32px]" 
@@ -164,39 +170,45 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
               <tr className="bg-muted/40 border-b border-border text-[13px] uppercase tracking-wider text-muted-foreground">
                 <th className="px-6 py-4 font-bold">Ruangan</th>
                 <th className="px-6 py-4 font-bold">Kapasitas</th>
-                <th className="px-6 py-4 font-bold">Fasilitas</th>
+                <th className="px-6 py-4 font-bold">Gedung & Lantai</th>
                 <th className="px-6 py-4 font-bold">Status</th>
                 <th className="px-6 py-4 font-bold text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {paginatedRooms.map((room) => (
-                <tr key={room.id} className="hover:bg-muted/20 transition-colors group">
+                <tr key={room.id_ruangan} className="hover:bg-muted/20 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      {room.images && room.images.length > 0 ? (
-                        <img src={room.images[0]} alt={room.name} className="w-12 h-12 rounded-lg object-cover border border-border" />
+                      {room.foto ? (
+                        <img src={room.foto} alt={room.nama_ruangan} className="w-12 h-12 rounded-lg object-cover border border-border" />
                       ) : (
                         <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                         </div>
                       )}
-                      <span className="font-bold text-foreground text-base">{room.name}</span>
+                      <div>
+                        <span className="font-bold text-foreground text-base">{room.nama_ruangan}</span>
+                        <div className="text-xs text-muted-foreground line-clamp-1 max-w-[200px]">
+                          {room.ruangan_fasilitas?.map((rf: any) => rf.fasilitas?.nama_fasilitas).join(', ') || 'Belum ada fasilitas'}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-foreground font-medium">
-                    {room.capacity} Orang
+                    {room.kapasitas} Orang
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground text-sm max-w-[200px] truncate">
-                    {room.facilities}
+                  <td className="px-6 py-4">
+                    <div className="font-bold">{room.gedung?.nama_gedung || '-'}</div>
+                    <div className="text-xs text-muted-foreground">Lantai {room.lantai || '-'}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                      room.isActive 
-                        ? 'bg-green-500/10 text-green-500 border border-green-500/20'
-                        : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                      room.status === 'Tersedia' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
+                      room.status === 'Maintenance' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
+                      'bg-red-500/10 text-red-500 border border-red-500/20'
                     }`}>
-                      {room.isActive ? 'Aktif' : 'Nonaktif'}
+                      {room.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -209,8 +221,8 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                       </button>
                       <button 
-                        onClick={() => handleDelete(room.id)}
-                        disabled={deletingId === room.id}
+                        onClick={() => handleDelete(room.id_ruangan, room.nama_ruangan)}
+                        disabled={deletingId === room.id_ruangan}
                         className="p-2 text-muted-foreground hover:text-red-500 bg-background border border-border rounded-lg hover:border-red-500 transition-colors disabled:opacity-50"
                         title="Hapus"
                       >
@@ -266,6 +278,8 @@ export function RoomsClient({ initialRooms }: { initialRooms: any[] }) {
       {isModalOpen && (
         <RoomModal 
           room={editingRoom} 
+          buildings={buildings}
+          facilities={facilities}
           onClose={() => {
             setIsModalOpen(false);
             window.location.reload();

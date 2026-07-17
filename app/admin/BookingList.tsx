@@ -11,18 +11,18 @@ export default function BookingList({ initialBookings }: { initialBookings: any[
   // Filter bookings based on search and status
   const filteredBookings = initialBookings.filter((booking) => {
     // 1. Status Filter
-    if (statusFilter !== 'Semua Status' && booking.status !== statusFilter.toUpperCase()) {
+    if (statusFilter !== 'Semua Status' && booking.status !== statusFilter) {
       return false;
     }
 
     // 2. Search Filter (match name, reason, room, status, or id)
     if (search.trim() !== '') {
       const q = search.toLowerCase();
-      const userName = Array.isArray(booking.user) ? (booking.user[0]?.name || '') : (booking.user?.name || '');
-      const roomName = Array.isArray(booking.room) ? (booking.room[0]?.name || '') : (booking.room?.name || '');
+      const userName = booking.user?.name || '';
+      const roomName = booking.room?.name || '';
       const reason = booking.reason || '';
       const statusStr = booking.status || '';
-      const idStr = booking.id || '';
+      const idStr = booking.booking_id || '';
       
       const combinedString = `${userName} ${roomName} ${reason} ${statusStr} ${idStr}`.toLowerCase();
       
@@ -34,7 +34,7 @@ export default function BookingList({ initialBookings }: { initialBookings: any[
     return true;
   });
 
-  const statuses = ['Semua Status', 'Menunggu', 'Disetujui', 'Ditolak', 'Dibatalkan'];
+  const statuses = ['Semua Status', 'Menunggu', 'Disetujui', 'Ditolak', 'Dibatalkan', 'Selesai'];
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">
@@ -103,7 +103,7 @@ export default function BookingList({ initialBookings }: { initialBookings: any[
             ) : filteredBookings.map((booking: any) => (
               <tr key={booking.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-5 py-3.5 text-xs font-semibold whitespace-nowrap text-muted-foreground">
-                  #{booking.id.toUpperCase().substring(0, 8)}
+                  #{booking.booking_id || booking.id}
                 </td>
                 <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                   {booking.created_at ? (
@@ -134,7 +134,24 @@ export default function BookingList({ initialBookings }: { initialBookings: any[
                   <StatusBadge status={booking.status} />
                 </td>
                 <td className="px-5 py-3.5">
-                  <div className="flex justify-center scale-90 origin-right">
+                  <div className="flex justify-center items-center scale-90 origin-right gap-2">
+                    {booking.lampiran && booking.lampiran.length > 0 ? (
+                      <a 
+                        href={booking.lampiran[0].file_path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-blue-500/10 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-500/20 transition-colors flex items-center gap-1.5 border border-blue-500/20" 
+                        title={`Download Lampiran: ${booking.lampiran[0].nama_file}`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                        File
+                      </a>
+                    ) : (
+                      <button disabled className="px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-xs font-bold flex items-center gap-1.5 border border-border opacity-50 cursor-not-allowed" title="Tidak ada lampiran">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                        N/A
+                      </button>
+                    )}
                     <BookingActions bookingId={booking.id} currentStatus={booking.status} />
                   </div>
                 </td>
@@ -148,14 +165,18 @@ export default function BookingList({ initialBookings }: { initialBookings: any[
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  if (status === 'DISETUJUI') {
+  const s = status?.toUpperCase() || '';
+  if (s === 'DISETUJUI') {
     return <span className="inline-flex justify-center w-[90px] items-center px-2 py-1 rounded border border-green-500/20 bg-green-500/10 text-[10px] font-bold text-green-600 dark:text-green-400">Diizinkan</span>;
   }
-  if (status === 'DITOLAK') {
+  if (s === 'DITOLAK') {
     return <span className="inline-flex justify-center w-[90px] items-center px-2 py-1 rounded border border-red-500/20 bg-red-500/10 text-[10px] font-bold text-red-600 dark:text-red-400">Ditolak</span>;
   }
-  if (status === 'DIBATALKAN') {
+  if (s === 'DIBATALKAN') {
     return <span className="inline-flex justify-center w-[90px] items-center px-2 py-1 rounded border border-gray-500/20 bg-gray-500/10 text-[10px] font-bold text-gray-500 dark:text-gray-400">Batal</span>;
+  }
+  if (s === 'SELESAI') {
+    return <span className="inline-flex justify-center w-[90px] items-center px-2 py-1 rounded border border-blue-500/20 bg-blue-500/10 text-[10px] font-bold text-blue-600 dark:text-blue-400">Selesai</span>;
   }
   return <span className="inline-flex justify-center w-[90px] items-center px-2 py-1 rounded border border-yellow-500/20 bg-yellow-500/10 text-[10px] font-bold text-yellow-600 dark:text-yellow-500">Menunggu</span>;
 }

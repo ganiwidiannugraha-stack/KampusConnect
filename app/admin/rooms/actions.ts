@@ -32,62 +32,80 @@ function getSupabaseAdmin() {
 async function requireAdmin() {
   const user = await getCurrentUser();
   if (!user || !user.role?.canAccessDashboard) {
-    return { authorized: false } as const;
+    return { authorized: false, user: null } as const;
   }
-  return { authorized: true } as const;
+  return { authorized: true, user } as const;
 }
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-export async function getRooms() {
+export async function getRoomsData() {
   const adminClient = getSupabaseAdmin();
-  const { data: rooms, error } = await adminClient
-    .from('rooms')
-    .select('id, name, capacity, facilities, is_active, images')
-    .order('name');
-    
-  if (error) {
-    console.error('Error fetching rooms:', error);
-    return [];
-  }
   
-  return (rooms || []).map(r => ({
-    ...r,
-    isActive: r.is_active
-  }));
+  // Fetch Rooms
+  const { data: rooms, error: roomsError } = await adminClient
+    .from('ruangan')
+    .select(`
+      *,
+      gedung (id_gedung, nama_gedung),
+      ruangan_fasilitas (
+        id,
+        fasilitas (id_fasilitas, nama_fasilitas, icon)
+      )
+    `)
+    .order('nama_ruangan');
+    
+  if (roomsError) console.error('Error fetching rooms:', roomsError);
+
+  // Fetch Buildings
+  const { data: buildings } = await adminClient.from('gedung').select('*').order('nama_gedung');
+  
+  // Fetch Facilities
+  const { data: facilities } = await adminClient.from('fasilitas').select('*').order('nama_fasilitas');
+
+  return {
+    rooms: rooms || [],
+    buildings: buildings || [],
+    facilities: facilities || []
+  };
 }
 
 export async function saveRoom(formData: FormData, roomId?: string) {
-  const { authorized } = await requireAdmin();
+  const { authorized, user } = await requireAdmin();
   if (!authorized) {
     return { success: false, message: 'Akses ditolak. Hanya administrator yang dapat mengelola ruangan.' };
   }
 
+  const adminClient = getSupabaseAdmin();
+  
+  const id_gedung = parseInt(formData.get('id_gedung') as string, 10);
   const name = formData.get('name') as string;
   const capacity = parseInt(formData.get('capacity') as string, 10);
-  const facilities = formData.get('facilities') as string;
-  const isActive = formData.get('isActive') === 'true';
+  const lantai = parseInt(formData.get('lantai') as string, 10);
+  const deskripsi = formData.get('deskripsi') as string;
+  const status = formData.get('status') as string || 'Tersedia';
   const existingImagesJson = formData.get('existingImages') as string;
   
-  if (!name || isNaN(capacity) || capacity <= 0) {
-    return { success: false, message: 'Nama dan kapasitas ruangan wajib diisi dengan benar.' };
+  // Fasilitas array (from checkbox)
+  const fasilitasIds = formData.getAll('fasilitas').map(id => parseInt(id as string, 10));
+
+  if (!name || isNaN(capacity) || capacity <= 0 || isNaN(id_gedung)) {
+    return { success: false, message: 'Nama, gedung, dan kapasitas ruangan wajib diisi dengan benar.' };
   }
 
-  let imageUrls: string[] = existingImagesJson ? JSON.parse(existingImagesJson) : [];
+  let imageUrl: string = existingImagesJson ? JSON.parse(existingImagesJson)[0] : '';
 
-  // Handle new image uploads with validation
+  // Handle new image uploads with validation (we only save one photo for V2 `foto`)
   const files = formData.getAll('images') as File[];
   
   for (const file of files) {
     if (file.size > 0) {
-      // Validate MIME type
       if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-        return { success: false, message: `Tipe file "${file.name}" tidak diizinkan. Gunakan JPG, PNG, WebP, atau GIF.` };
+        return { success: false, message: `Tipe file "${file.name}" tidak diizinkan.` };
       }
-      // Validate file size
       if (file.size > MAX_FILE_SIZE) {
-        return { success: false, message: `File "${file.name}" terlalu besar. Maksimal 5MB per file.` };
+        return { success: false, message: `File terlalu besar. Maksimal 5MB per file.` };
       }
 
       const arrayBuffer = await file.arrayBuffer();
@@ -102,52 +120,79 @@ export async function saveRoom(formData: FormData, roomId?: string) {
       }
 
       await fs.writeFile(path.join(uploadDir, filename), buffer);
-      imageUrls.push(`/uploads/rooms/${filename}`);
+      imageUrl = `/uploads/rooms/${filename}`;
     }
   }
 
-  const data = {
-    name,
-    capacity,
-    facilities,
-    is_active: isActive,
-    images: imageUrls,
+  const roomData = {
+    id_gedung,
+    nama_ruangan: name,
+    kapasitas: capacity,
+    lantai: isNaN(lantai) ? null : lantai,
+    deskripsi,
+    status,
+    foto: imageUrl || null
   };
 
-  let error;
-  const authClient = await getAuthClient();
+  let newRoomId = roomId;
 
   if (roomId) {
-    const res = await authClient.from('rooms').update(data).eq('id', roomId);
-    error = res.error;
+    const { error } = await adminClient.from('ruangan').update(roomData).eq('id_ruangan', roomId);
+    if (error) return { success: false, message: error.message };
   } else {
-    const res = await authClient.from('rooms').insert(data);
-    error = res.error;
+    const { data, error } = await adminClient.from('ruangan').insert(roomData).select('id_ruangan').single();
+    if (error) return { success: false, message: error.message };
+    newRoomId = data.id_ruangan.toString();
   }
 
-  if (!error) {
-    revalidatePath('/admin/rooms');
-    revalidatePath('/rooms');
-    return { success: true };
+  // Update fasilitas
+  if (newRoomId) {
+    // Delete existing relations
+    await adminClient.from('ruangan_fasilitas').delete().eq('id_ruangan', newRoomId);
+    
+    // Insert new relations
+    if (fasilitasIds.length > 0) {
+      const rfData = fasilitasIds.map(fid => ({
+        id_ruangan: parseInt(newRoomId as string, 10),
+        id_fasilitas: fid
+      }));
+      await adminClient.from('ruangan_fasilitas').insert(rfData);
+    }
   }
-  
-  return { success: false, message: error.message || 'Terjadi kesalahan' };
+
+  // Log activity
+  await adminClient.from('activity_logs').insert({
+    id_user: user?.id,
+    aktivitas: roomId ? `Memperbarui ruangan: ${name}` : `Menambahkan ruangan baru: ${name}`,
+    ip_address: 'System'
+  });
+
+  revalidatePath('/admin/rooms');
+  revalidatePath('/rooms');
+  return { success: true };
 }
 
-export async function deleteRoom(id: string) {
-  const { authorized } = await requireAdmin();
+export async function deleteRoom(id: string, name: string) {
+  const { authorized, user } = await requireAdmin();
   if (!authorized) {
     return { success: false, message: 'Akses ditolak.' };
   }
 
-  const authClient = await getAuthClient();
-  const { error } = await authClient
-    .from('rooms')
+  const adminClient = getSupabaseAdmin();
+  const { error } = await adminClient
+    .from('ruangan')
     .delete()
-    .eq('id', id);
+    .eq('id_ruangan', id);
   
   if (!error) {
+    await adminClient.from('activity_logs').insert({
+      id_user: user?.id,
+      aktivitas: `Menghapus ruangan: ${name}`,
+      ip_address: 'System'
+    });
+
     revalidatePath('/admin/rooms');
+    revalidatePath('/rooms');
     return { success: true };
   }
   

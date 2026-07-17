@@ -228,21 +228,38 @@ export default function BookingModalClient({
 
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-foreground/80">Waktu (Mulai - Selesai)</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="time"
-                    name="startTime"
-                    required
-                    className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all dark:[&::-webkit-calendar-picker-indicator]:invert"
-                  />
-                  <span className="text-muted-foreground font-bold">-</span>
-                  <input
-                    type="time"
-                    name="endTime"
-                    required
-                    className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all dark:[&::-webkit-calendar-picker-indicator]:invert"
-                  />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1 w-full relative">
+                    <input
+                      type="time"
+                      name="startTime"
+                      required
+                      className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all dark:[&::-webkit-calendar-picker-indicator]:invert"
+                    />
+                  </div>
+                  <span className="hidden sm:inline text-muted-foreground font-bold">-</span>
+                  <div className="flex-1 w-full relative">
+                    <input
+                      type="time"
+                      name="endTime"
+                      required
+                      className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all dark:[&::-webkit-calendar-picker-indicator]:invert"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-foreground/80">Jumlah Peserta</label>
+                <input
+                  type="number"
+                  name="jumlahPeserta"
+                  required
+                  min="1"
+                  max={room.capacity}
+                  className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
+                  placeholder={`Maksimal ${room.capacity} orang`}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -254,6 +271,22 @@ export default function BookingModalClient({
                   className="flex min-h-[80px] w-full rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all resize-none"
                   placeholder="Misal: Rapat Koordinasi Tahunan..."
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-foreground/80 flex items-center justify-between">
+                  <span>Lampiran Proposal / Surat Izin (Wajib)</span>
+                  <span className="text-[10px] font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full border">Format: PDF/JPG/PNG (Maks 2MB)</span>
+                </label>
+                <div className="flex w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
+                  <input
+                    type="file"
+                    name="lampiran"
+                    required
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="w-full text-muted-foreground file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                  />
+                </div>
               </div>
 
               <div className="pt-2">
@@ -339,7 +372,7 @@ export default function BookingModalClient({
         }}
         className={triggerClassName || "flex h-11 w-full items-center justify-center rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors"}
       >
-        {triggerText || "Pilih Ruangan Ini"}
+        {triggerText || "Reservasi"}
       </button>
 
       {mounted && isOpen && createPortal(modalContent, document.body)}

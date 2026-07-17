@@ -22,8 +22,8 @@ Akses: Katalog Ruang, Pengajuan Booking, Riwayat & Pembatalan (H-1)
    Nama : Rina Permata
    Org  : BEM Universitas
 
-4. Email: budi.santoso@kampus.ac.id
-   Nama : Budi Santoso
+4. Email: fajar.nugraha@kampus.ac.id
+   Nama : Fajar Nugraha
    Org  : HIMA Informatika
 
 5. Email: siti.nurhaliza@kampus.ac.id

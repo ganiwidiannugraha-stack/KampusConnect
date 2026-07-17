@@ -382,6 +382,12 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                           <svg className="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                           {event.user?.name || 'Anonim'}
                         </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <button className="inline-flex items-center gap-1.5 text-[11px] text-blue-500 hover:text-blue-600 font-bold bg-blue-500/10 hover:bg-blue-500/20 px-2 py-1 rounded-md transition-colors border border-blue-500/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                            Lampiran
+                          </button>
+                        </div>
                       </div>
 
                       {event.status === 'MENUNGGU' && (
@@ -521,7 +527,11 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                         <StatusBadge status={booking.status} />
                       </td>
                       <td className="px-5 py-3.5">
-                        <div className="flex justify-center scale-90 origin-right">
+                        <div className="flex justify-center items-center scale-90 origin-right gap-2">
+                          <button className="px-3 py-1.5 bg-blue-500/10 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-500/20 transition-colors flex items-center gap-1.5 border border-blue-500/20" title="Lihat Lampiran/Proposal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                            File
+                          </button>
                           <BookingActions bookingId={booking.id} currentStatus={booking.status} />
                         </div>
                       </td>
@@ -557,7 +567,11 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                       <div className="text-muted-foreground mt-0.5 border-l-2 border-primary/20 pl-2 line-clamp-2">"{booking.reason}"</div>
                     </div>
 
-                    <div className="mt-2 pt-3 border-t border-border border-dashed flex justify-end">
+                    <div className="mt-2 pt-3 border-t border-border border-dashed flex justify-between items-center">
+                      <button className="inline-flex items-center gap-1.5 text-xs text-blue-500 hover:text-blue-600 font-bold bg-blue-500/10 hover:bg-blue-500/20 px-2 py-1.5 rounded-md transition-colors border border-blue-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                        Lampiran
+                      </button>
                       <div className="scale-95 origin-right">
                         <BookingActions bookingId={booking.id} currentStatus={booking.status} />
                       </div>
