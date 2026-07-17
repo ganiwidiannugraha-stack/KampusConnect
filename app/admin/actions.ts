@@ -1,28 +1,21 @@
 'use server';
 
-/**
- * @file actions.ts
- * @description Mendefinisikan seluruh Server Actions (RPCs) yang digunakan oleh Dashboard Admin.
- * Fungsi-fungsi ini berjalan eksklusif di runtime Node.js / Edge, memastikan bahwa 
- * logika sensitif dan interaksi database tidak pernah terekspos ke bundle klien.
- */
+// Baris 'use server' ini penting banget. Ini ngasih tau Next.js kalau semua fungsi di file ini 
+// cuma boleh jalan di server (backend). Jadi data rahasia kayak kunci database aman dari user/browser.
+
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '@/app/actions/auth';
 
-// Ensure required environment variables are present to prevent silent failures at runtime.
+// Mengambil kunci database dari file .env
+// Pakai Service Role Key kalau ada, buat akses khusus admin biar bisa ubah data tanpa batas
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-/**
- * Menginstansiasi Supabase client terautentikasi memanfaatkan `cookies()` dari Next.js App Router.
- * Pendekatan ini menjamin bahwa kebijakan Row Level Security (RLS) dievaluasi dengan tepat
- * berdasarkan konteks sesi pengguna yang sedang aktif.
- *
- * @returns {Promise<import('@supabase/supabase-js').SupabaseClient>} Instansi Supabase client dengan header autentikasi.
- */
+// Fungsi pembantu buat bikin koneksi database (Supabase) yang bawa sesi login dari cookies
+// Ini penting biar database tahu siapa yang lagi nge-request (buat sistem keamanan RLS di Supabase)
 async function getAuthClient() {
   const cookieStore = await cookies();
   const token = cookieStore.get('supabase-session')?.value;
@@ -30,34 +23,27 @@ async function getAuthClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    // Kalau ada token login, kita selipkan di header Authorization
     token ? { global: { headers: { Authorization: `Bearer ${token}` } } } : {}
   );
 }
 
-/**
- * Authorization Guard: Memvalidasi apakah identitas pemanggil (caller) memiliki 
- * hak istimewa yang cukup untuk mengeksekusi prosedur administratif.
- * 
- * @returns {Promise<{authorized: boolean, user: any}>} Tuple yang berisi status otorisasi dan payload pengguna.
- */
+// Fungsi ini buat ngecek apakah orang yang lagi login itu beneran admin
+// Kalau bukan admin atau belum login, aksesnya bakal ditolak (return false)
 async function requireAdmin() {
   const user = await getCurrentUser();
   if (!user || !user.role?.canAccessDashboard) {
-    // Mekanisme Fail-closed: secara default menolak akses jika konteks otorisasi tidak lengkap.
     return { authorized: false, user: null } as const;
   }
   return { authorized: true, user } as const;
 }
 
-/**
- * Mengambil daftar reservasi fasilitas beserta relasinya.
- * Memanfaatkan kapabilitas foreign key join Supabase untuk memuat data relasional (rooms & profiles) secara efisien.
- * 
- * @todo Implementasikan cursor-based pagination untuk rendering dataset skala besar yang lebih efisien.
- * @returns {Promise<Array<any>>} Array berisi entitas reservasi yang sudah dinormalisasi.
- */
+// Fungsi buat ngambil semua data reservasi buat ditampilin di tabel admin
 export async function getBookings() {
   const authClient = await getAuthClient();
+  
+  // Mengambil data dari tabel 'reservasi', dan sekalian ngambil nama ruangan dan nama peminjam 
+  // (Ini namanya Foreign Key Join, biar gak usah query berulang kali)
   const { data: bookings, error } = await authClient
     .from('reservasi')
     .select(`
@@ -74,15 +60,17 @@ export async function getBookings() {
       tanggal_pengajuan,
       lampiran (id_lampiran, nama_file, file_path)
     `)
+    // Urutkan dari yang paling baru diajukan
     .order('tanggal_pengajuan', { ascending: false })
+    // Dibatasi 500 data aja biar website nggak ngelag kalau datanya udah ribuan
     .limit(500);
 
   if (error) {
-    console.error('[Action: getBookings] Eksekusi query gagal:', error.message);
+    console.error('[Action: getBookings] Query gagal:', error.message);
     return [];
   }
   
-  // Layer Normalisasi: memetakan struktur DB V2 ke UI frontend (BookingList)
+  // Ngerapihin data dari database (format V2) jadi format yang gampang dibaca sama tabel di frontend
   return (bookings || []).map((b: any) => ({
     id: b.id_reservasi,
     booking_id: b.kode_reservasi,
@@ -99,47 +87,53 @@ export async function getBookings() {
   }));
 }
 
+// Fungsi buat mengubah status peminjaman jadi "Disetujui" atau "Ditolak"
 export async function updateBookingStatus(bookingId: string, status: 'Disetujui' | 'Ditolak') {
-  // 1. Fase Otorisasi
+  // 1. Cek dulu, beneran admin gak nih yang nge-klik?
   const { authorized, user: admin } = await requireAdmin();
   if (!authorized) {
-    return { success: false, message: 'Akses ditolak. Hanya administrator yang dapat memproses reservasi.' };
+    return { success: false, message: 'Akses ditolak. Cuma Admin yang bisa klik ini.' };
   }
 
-  // 2. Validasi
+  // 2. Cek datanya bener atau gak (jangan sampai di-hack lewat inspect element)
   if (!bookingId || !['Disetujui', 'Ditolak'].includes(status)) {
-    return { success: false, message: 'Parameter tidak valid.' };
+    return { success: false, message: 'Data tidak valid.' };
   }
 
   const authClient = await getAuthClient();
 
-  // 3. Update DB
+  // 3. Update statusnya di database
   const { error } = await authClient
     .from('reservasi')
     .update({ status })
     .eq('id_reservasi', bookingId);
     
   if (!error) {
-    // 4. Audit Trail (approval)
+    // 4. Catat ke tabel history (audit trail) siapa admin yang nyetujui/nolak
     await authClient.from('approval').insert({
-      id_reservasi: parseInt(bookingId, 10),
+      id_reservasi: parseInt(bookingId, 10), // Ubah id jadi angka
       id_admin: admin?.id || null,
       status: status,
       catatan: "Diproses oleh Admin Dashboard"
     });
 
-    // 5. Invalidate Cache
+    // 5. Suruh Next.js buat refresh halaman tanpa perlu reload (hapus cache lama)
     revalidatePath('/admin');
     revalidatePath('/admin/schedule');
+    
     return { success: true };
   }
   
-  console.error(`[Action: updateBookingStatus] Gagal untuk ID ${bookingId}:`, error.message);
-  return { success: false, message: error.message || 'Terjadi kesalahan sistem' };
+  console.error(`[Action: updateBookingStatus] Gagal update:`, error.message);
+  return { success: false, message: error.message || 'Gagal konek ke database' };
 }
 
+// Fungsi buat ngitung ada berapa reservasi yang statusnya masih "Menunggu"
 export async function getPendingBookingsCount() {
   const authClient = await getAuthClient();
+  
+  // Pake 'head: true' biar database cuma ngirim jumlah angkanya aja, bukan datanya.
+  // Ini bikin loading-nya super cepat buat nampilin angka di badge notifikasi.
   const { count, error } = await authClient
     .from('reservasi')
     .select('*', { count: 'exact', head: true })
@@ -149,23 +143,28 @@ export async function getPendingBookingsCount() {
   return count || 0;
 }
 
+// Fungsi buat ngambil data total buat ditampilin di kartu-kartu halaman depan admin (Dashboard)
 export async function getDashboardStats() {
   const authClient = await getAuthClient();
   
+  // Hitung berapa banyak ruangan yang statusnya 'Tersedia'
   const { count: roomsCount } = await authClient
     .from('ruangan')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'Tersedia');
 
+  // Hitung berapa ruangan yang lagi rusak/nggak bisa dipake
   const { count: inactiveRoomsCount } = await authClient
     .from('ruangan')
     .select('*', { count: 'exact', head: true })
     .neq('status', 'Tersedia');
 
+  // Hitung total pengguna/mahasiswa yang udah daftar di web kita
   const { count: usersCount } = await authClient
     .from('profiles')
     .select('*', { count: 'exact', head: true });
 
+  // Return datanya dalam bentuk objek biar gampang dipanggil di Frontend
   return {
     totalRooms: (roomsCount || 0) + (inactiveRoomsCount || 0),
     activeRooms: roomsCount || 0,

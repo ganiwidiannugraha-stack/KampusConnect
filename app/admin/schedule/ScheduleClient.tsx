@@ -61,6 +61,8 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
   );
   const [direction, setDirection] = useState(0);
 
+  // Fungsi buat ganti tab (dari Kalender ke Tabel atau sebaliknya)
+  // setDirection ini dipakai buat nentuin arah animasi gesernya (kiri/kanan)
   const switchTab = (newTab: 'calendar' | 'table') => {
     setDirection(newTab === 'table' ? 1 : -1);
     setActiveTab(newTab);
@@ -100,6 +102,8 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
 
   const [addState, formAction, isPending] = useActionState(createBooking, null);
 
+  // Ini nungguin balasan dari backend pas admin nambahin jadwal secara manual.
+  // Kalau sukses, munculin pop-up hijau, trus halamannya otomatis ke-refresh biar data barunya nongol.
   useEffect(() => {
     if (addState) {
       if (addState.success) {
@@ -196,12 +200,18 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
 
   const selectedDayEvents = getEventsForDay(selectedDate);
 
-  // === TABLE LOGIC ===
+  // === LOGIKA TABEL ===
   const statuses = ['Semua Status', 'Menunggu', 'Disetujui', 'Ditolak', 'Dibatalkan'];
 
+  // useMemo ini fungsinya buat nyimpen hasil pencarian sementara di memori browser.
+  // Jadi tabelnya gak perlu ngitung/nyari ulang dari 0 tiap kali admin ngetik sesuatu di kolom search.
+  // Ini bikin fiturnya kerasa cepet banget (nggak ngelag).
   const filteredBookings = useMemo(() => {
     return allBookings.filter((booking: any) => {
+      // 1. Filter berdasarkan Dropdown Status (Misal: cuma nampilin yang 'Menunggu')
       if (statusFilter !== 'Semua Status' && booking.status !== statusFilter.toUpperCase()) return false;
+      
+      // 2. Filter berdasarkan ketikan di kolom pencarian (Bisa cari nama, alasan, atau ruangan)
       if (search.trim() !== '') {
         const q = search.toLowerCase();
         const userName = booking.user?.name || '';

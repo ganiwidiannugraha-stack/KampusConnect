@@ -1,5 +1,7 @@
 'use client';
 
+// File ini pake 'use client' karena banyak interaksi langsung sama user di browser (kayak klik, geser foto, ketik form).
+// Kalau server component, dia gak bisa nangkep event onClick atau onChange.
 import { useState, useActionState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { createBooking } from '@/app/booking/actions';
@@ -51,7 +53,13 @@ export default function BookingModalClient({
   useEffect(() => {
     if (defaultOpen) setIsOpen(true);
   }, [defaultOpen]);
+
+  // Hook ini (useActionState) bawaan React 19. Gunanya buat jalanin fungsi backend (createBooking) dari komponen depan
+  // tanpa harus pindah halaman. 'state' nyimpen pesan error/sukses dari backend, 'pending' bernilai true kalau lagi loading.
   const [state, formAction, pending] = useActionState(createBooking, null);
+  
+  // State ini buat ngecek apakah komponen udah beres di-render di browser. 
+  // Gunanya buat menghindari error "Hydration" kalau pake fungsi kayak createPortal.
   const [mounted, setMounted] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -69,6 +77,8 @@ export default function BookingModalClient({
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
+  // Fungsi buat ngedeteksi usapan jari (swipe) di layar HP
+  // Kalau jarak gesernya nyampe batas minimal (50px), foto di galeri bakal pindah ke kanan/kiri.
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
@@ -87,10 +97,11 @@ export default function BookingModalClient({
     setMounted(true);
   }, []);
 
-  // Close modal when booking is successful, and show toast
+  // Efek ini jalan tiap kali ada balasan dari backend (state berubah)
+  // Kalau balasannya sukses, modal/popup bakal ditutup otomatis dalam 2 detik.
   useEffect(() => {
     if (state) {
-      toast.dismiss('booking-loading');
+      toast.dismiss('booking-loading'); // Hapus pesan loading yang muter-muter
       if (state.success) {
         toast.success(state.message);
         const timer = setTimeout(() => {
@@ -379,6 +390,8 @@ export default function BookingModalClient({
         {triggerText || "Reservasi"}
       </button>
 
+      {/* createPortal ini ngebantu mindahin elemen popup (modal) langsung nempel ke tag <body> HTML.
+          Kenapa? Biar popup-nya nggak ketutupan sama elemen lain (z-index issue) di komponen asalnya. */}
       {mounted && isOpen && createPortal(modalContent, document.body)}
       {mounted && isLightboxOpen && createPortal(lightboxContent, document.body)}
     </>
