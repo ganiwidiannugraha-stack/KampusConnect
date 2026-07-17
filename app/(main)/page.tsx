@@ -1,16 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { cookies } from 'next/headers';
 import { 
   ArrowRight, PlayCircle, CheckCircle2, 
   Search, Eye, RefreshCw, ShieldCheck, 
   Lock, Building, Calendar 
 } from 'lucide-react';
 
-export default async function Home() {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get('supabase-session')?.value;
-  const isLoggedIn = !!sessionToken;
+export default function Home() {
 
   return (
     <div className="font-sans text-zinc-800 bg-white antialiased overflow-x-hidden">
@@ -41,17 +37,10 @@ export default async function Home() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                {isLoggedIn ? (
-                  <Link href="/rooms" className="inline-flex justify-center items-center gap-2 bg-primary text-white font-bold text-lg px-8 py-4 rounded-full hover:bg-primary/90 transition-all hover:shadow-lg hover:-translate-y-0.5">
-                    Mulai Reservasi
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                ) : (
-                  <Link href="/login" className="inline-flex justify-center items-center gap-2 bg-primary text-white font-bold text-lg px-8 py-4 rounded-full hover:bg-primary/90 transition-all hover:shadow-lg hover:-translate-y-0.5">
-                    Mulai Sekarang
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                )}
+                <Link href="/rooms" className="inline-flex justify-center items-center gap-2 bg-primary text-white font-bold text-lg px-8 py-4 rounded-full hover:bg-primary/90 transition-all hover:shadow-lg hover:-translate-y-0.5">
+                  Cari Ruangan
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
                 
                 <Link href="#how-it-works" className="inline-flex justify-center items-center gap-2 bg-white text-primary border-2 border-primary font-bold text-lg px-8 py-4 rounded-full hover:bg-primary/5 transition-all">
                   Pelajari Lebih Lanjut
@@ -80,6 +69,7 @@ export default async function Home() {
                   src="https://images.unsplash.com/photo-1577415124269-fc1140a69e91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
                   alt="Modern university study space"
                   fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
                 />
               </div>

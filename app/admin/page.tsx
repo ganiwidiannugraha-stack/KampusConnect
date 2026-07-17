@@ -283,8 +283,8 @@ export default async function AdminDashboardPage() {
                         {b.user?.name ? b.user.name.substring(0,2).toUpperCase() : 'AN'}
                       </div>
                       <div>
-                        <div className="text-sm font-bold text-foreground">{b.user?.name || 'Anonim'}</div>
-                        <div className="text-[11px] text-muted-foreground">#{b.id.toUpperCase().substring(0, 8)}</div>
+                        <div className="font-bold text-sm text-foreground">{b.user?.name || 'Anonim'}</div>
+                        <div className="text-[11px] text-muted-foreground">#{String(b.id).toUpperCase().substring(0, 8)}</div>
                       </div>
                     </div>
                     <StatusBadge status={b.status} />

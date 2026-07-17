@@ -58,7 +58,7 @@ export function DownloadPdfButton({ booking, userName }: DownloadPdfProps) {
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`No. Ref: KC-${booking.id.substring(0, 8).toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
+    doc.text(`No. Ref: KC-${String(booking.id).toUpperCase().substring(0, 8)}`, pageWidth / 2, y, { align: 'center' });
     y += 15;
 
     // ===== TABEL INFO =====

@@ -496,7 +496,7 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                   ) : paginatedBookings.map((booking: any) => (
                     <tr key={booking.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-5 py-3.5 text-xs font-semibold whitespace-nowrap text-muted-foreground">
-                        #{booking.id.toUpperCase().substring(0, 8)}
+                        #{String(booking.id).toUpperCase().substring(0, 8)}
                       </td>
                       <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                         {booking.created_at ? (
@@ -551,7 +551,7 @@ export default function ScheduleClient({ initialBookings, allBookings, rooms }: 
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="font-bold text-sm text-foreground">{booking.user?.name || 'Anonim'}</div>
-                        <div className="text-[11px] text-muted-foreground">#{booking.id.toUpperCase().substring(0, 8)}</div>
+                        <div className="text-[11px] text-muted-foreground">#{String(booking.id).toUpperCase().substring(0, 8)}</div>
                       </div>
                       <StatusBadge status={booking.status} />
                     </div>
