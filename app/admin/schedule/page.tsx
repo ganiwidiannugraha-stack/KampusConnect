@@ -7,6 +7,9 @@ export const metadata = {
   title: 'Jadwal & Reservasi - Admin KampusConnect',
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function SchedulePage() {
   const [scheduleBookings, allBookings, roomsData] = await Promise.all([
     getScheduleBookings(),

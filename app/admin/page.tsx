@@ -11,6 +11,9 @@ import Link from 'next/link';
 import { BookingActions } from './BookingActions';
 import { StatusBadge } from './BookingList';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * Merender layout dan agregasi data untuk Dashboard Admin.
  * 
